@@ -1,6 +1,4 @@
 '''
-LexScraper_IT
-
     Given a list of URLs, for each URL:
         - parsing the HTML
         - extracting law title, subtitle and body and printing it to a .txt file
