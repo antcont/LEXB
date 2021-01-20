@@ -1,8 +1,7 @@
 '''
-URLs_collection.py
 
  Creating a comma-separated file of parallel (German and Italian) URLs of all laws contained in the LexBrowser database;
- exporting two separate (parallel) lists of URLs to be used for scraping.
+ exporting two separate (parallel) txt .lists of URLs to be used for scraping.
 
 '''
 
@@ -37,13 +36,13 @@ for year in list_years:
 print("\nGetting German URLs and pairing...")
 
 ''' blacklist of terms that identify untranslated text pairs '''
-blacklist = ["Corte costituzionale",
+blacklist = ["Corte costituzionale",        #these are almost never translated to German, still, the "German" version (with Italian text) may be on the LexBrowser
              "TAR",
              "T.A.R.",
-             "Verwaltungsgericht",
+             "Verwaltungsgericht",          #sometimes they just translate the title, but the text is in Italian
              "Verfassungsgerichtshof",
              "Sentenza",
-             "Beschluss"]
+             "Beschluss"]                   #actually some of them are in both languages, but the title remained in German (s. http://lexbrowser.provinz.bz.it/doc/it/6337/beschluss_n_2913_del_14_12_2009.aspx)
 
 ''' pairing URLs based on link from one law to another, by changing language (switch to DE) '''
 paired_URLs = {}
