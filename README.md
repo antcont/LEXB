@@ -8,9 +8,8 @@
 - `LexScraper_IT.py`:   	a scraper for law texts from the LexBrowser database.
    	 			Given a list of URLs, for each URL:
   - parsing the HTML
-  - extracting law title, subtitle and body
-  - printing it to a .txt file
-  - creating a .csv report file.
+  - extracting law title, subtitle and body and printing to a .txt file
+  - creating a .csv report file
 
 
 - `LexScraper_DE.py`:   	same as LexScraper_IT.py, there is just an additional filtering stage based on a blacklist of terms in the German law title.
