@@ -1,6 +1,7 @@
 '''
 
-#counted number of TUs with wrong language detected (just it-de, and just segments > 8 words) ==
+todo: creare README dettagliato per tmx_cleaner.py e fare nuova cartella con tmx_cleaner.py e README.md
+
 
 A toolkit for cleaning the parallel corpus in .tmx format (aligned with LF Aligner) and getting clean sentence-sentence
 translation units:
@@ -25,7 +26,7 @@ from langdetect import detect
 import regex
 from lxml import etree
 
-tmx_path = r"C:\Users\anton\Desktop\prove_download_scraper\prova19.10\merged_tmx19_(recleaned from scratch_22.01.2021).tmx"  # insert path of the .tmx file
+tmx_path = r"C:\Users\anton\Desktop\prove_download_scraper\prova19.10\merged_tmx19_(recleaned from scratch_22.01.2021; v.2).tmx"  # insert path of the .tmx file
 
 '''Removing TUs with identical source and target'''
 def remove_untranslated(path):
@@ -41,7 +42,7 @@ def remove_untranslated(path):
         if source_segment == target_segment:
             body.remove(tu)                                                             # removing untranslated TUs
             counter_untr += 1
-    tree.write(path, encoding="UTF-8")                                                  # overwriting the TM
+    tree.write(path, encoding="UTF-8", xml_declaration=True)                                                  # overwriting the TM
     print("%i untranslated TUs removed." % counter_untr)
     print()
 
@@ -50,8 +51,8 @@ def remove_untranslated(path):
 def remove_art_and_co(path):
     counter_art_mod = 0
     counter_art_rem = 0
-    regex_mod = regex.compile(r"^(Art\. \d{1,2}/?(bis|ter|quater|quinquies|sexies|septies|octies|novies|decies|undecies|duodecies)?) ?\-? ?(\(?\p{Lu}.+)")       #segments beginning with "Art. 1" or "Art. 1 - "
-    regex_rem = regex.compile(r"^(Art\. \d{1,2}|\(\d{1,2}\)|\d{1,2}(bis|ter|quater|quinquies|sexies|septies|octies|novies|decies|undecies|duodecies)?\.)$")        # TUs where at least one segment is only "Art. 1". "(1)", "1." "1bis."
+    regex_mod = regex.compile(r"^(Art\. \d{1,3}/?(bis|ter|quater|quinquies|sexies|septies|octies|novies|decies|undecies|duodecies)?) ?\-? ?(\(?\p{Lu}.+)")       #segments beginning with "Art. 1" or "Art. 1 - "
+    regex_rem = regex.compile(r"^(Art\. \d{1,3}|\(\d{1,3}\)|\d{1,3}(bis|ter|quater|quinquies|sexies|septies|octies|novies|decies|undecies|duodecies)?\.)$")        # TUs where at least one segment is only "Art. 1". "(1)", "1." "1bis."
     tree = etree.parse(path)
     root = tree.getroot()
     body = root.find("body")
@@ -61,9 +62,9 @@ def remove_art_and_co(path):
             seg = tuv.find("seg")
             seg_t = seg.text
             if regex_mod.search(seg_t):
-                #print(seg_t)           #for testing purposes
+                print(seg_t)           #for testing purposes
                 seg.text = regex_mod.search(seg_t).group(3)
-                #print(seg.text)        #for testing purposes
+                print(seg.text)        #for testing purposes
                 counter_art_mod += 1
             if regex_rem.search(seg_t):
                 try:
@@ -72,7 +73,7 @@ def remove_art_and_co(path):
                 except:
                     print("An error occurred. TU was not removed: %s" % seg_t)
                     pass
-    tree.write(path, encoding="UTF-8")
+    tree.write(path, encoding="UTF-8", xml_declaration=True)
     print("%i segments cleaned from 'Art. 1' at beginning of the sentence" % counter_art_mod)
     print("%i TUs removed ('Art. ...' or other non-essential segments only)." % counter_art_rem)
     print()
@@ -96,7 +97,7 @@ def remove_punctuation_numeral_segments(path):
             except:
                 print("An error occurred. TU was not removed: %s" % source_segment, target_segment)
                 pass
-    tree.write(path, encoding="UTF-8")
+    tree.write(path, encoding="UTF-8", xml_declaration=True)
     print("%i TUs removed (at least one of the segments has punctuation and/or numbers only)." % counter_art_rem2)
     print()
 
@@ -105,19 +106,19 @@ patterns = [
     regex.compile(r"^((.+))$"),                       # removing strange "" character at the end of some segments
     regex.compile(r"^[“„'\"](([^“„'\"”]+))[“'\"”]$"),     # removing quotes if only at the beginning and end of segments
     regex.compile(r"^(\(\d{1,3}\)|•|\.(?!\.)|\-) ?(.+)$"),       # removing "(1) ", "• ", ". " and "- " from beginning of segment
-    regex.compile(r"^[“„'\"]?(\d\d?[\.\)]|[a-mo-z]{1,2}\.|[a-z]\)) (?!Jänner|Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember)([A-Za-z].+)[“„'\"]?$"),      #removing "1.", "a.", "1)", "a)" (even when preceded by apostrophes or quotation marks)  # added final square parentheses to eliminate eventual final quotation marks; added exceptions for n. and numbers followed by months
-    regex.compile(r"^(((?!\().+(?<! n|Nr|Art|art|\p{Lu}|\d)[\.\)])) ?\d\d?\)$"),       #removing numbers with closed parenthesis at end of segment, like "12)" (if not preceded "Art.", "Nr.", "n.", ")
+    regex.compile(r"^[“„'\"]?(\(?[A-Z]\)|[a-z]?\d\d?[\.\)]|[a-m]{1,2}\.|[a-z]\)) ?(?!Jänner|Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember)([\p{Lu}\p{Ll}“„'\"”].+)[“„'\"]?$"),      #removing "1.", "a.", "1)", "a)", "(1)", "(a)", "a1)", "a1.", "A)", "(A)" (even when preceded by apostrophes or quotation marks)  # added final square parentheses to eliminate eventual final quotation marks; added exceptions for n. and numbers followed by months
+    regex.compile(r"^(((?!\().+(?<! n|Nr|Art|art|\p{Lu}|\d)[\.\)])) ?\(?\d\d?\)$"),       #removing numbers with closed parenthesis at end of segment, like "1)" and "(1)" (if not preceded "Art.", "Nr.", "n.", ")
     regex.compile(r"^(\()(.+)\)$"),                     # removing parentheses when both at beginning and end of segment
     regex.compile(r"^\[ ?((.+)) ?\]?$"),  # removing square brackets both at beginning and end of segments
     regex.compile(r"^[“„'\"]?\d{1,2}/?(bis|ter|quater|quinquies|sexies|septies|octies|novies|decies|undecies|duodecies) (.+)$"), #removing instances like "5/bis " at the beginning of the segment
     regex.compile(r"^(.''?\) )(\p{Lu}.+)$"),              # removing other noise (one/two apostrophes and a closed parenthesis) at the beginning of titles
     regex.compile(r"^((.+(?<! n| Nr| Art| art)\.)) \d\d?\.$"),      # removing numbers (1.) in sentence-final position (except when preceded by Nr. or n. or art)
-    regex.compile(r"^(\d\.\d)\)? ?([A-Za-z].+)$"),                  # removing instances of particular numbers at sentence beginning, like "1.1" and "1.1)"
+    regex.compile(r"^(\d\d?\.\d\d?)\)? ?([\p{Lu}\p{Ll}“„'\"”].+)$"),            # removing instances of particular numbers at sentence beginning, like "1.1" and "1.1)"
     regex.compile(r"^\(\d\d?/\w{3,10}\) ((.+))$"), #removing instances of (2/bis) and similar from beginning of segments
     regex.compile(r"^[A-Z] \d\d?\) ((.+))$"),    # removing instances of "A 12) " at the beginning of segments
     regex.compile(r"^(([^“„'\"”]+))[“'\"”]$"),     # removing quotes at the end of segment (if no other quotes in segment)
     regex.compile(r"^[“„'\"](([^“„'\"”]+))$"),     # removing quotes at the beginning of segment (if no other quotes in segment)
-    regex.compile(r"^[IVX]{1,4}\.([A-Z]\.|\d\)) (.+)$"), # removing list markers with roman numeral and uppercase letter like "II.D." and "II.2)"
+    regex.compile(r"^[IVX]{1,4}\.([\p{Lu}]\.|\d\)) (.+)$"), # removing list markers with roman numeral and uppercase letter like "II.D." and "II.2)"
     regex.compile(r"^((.+))(>| \*\))$"), # removing ">" and " *)" from end of segments
     regex.compile(r"^\d\d?\.\d\d?\.\d\d?(\.\d\d?)? ?((\p{Lu}.+))$"),   # removing "1.1.1" and "1.1.1.1" at the beginning of segments (with or without spaces)
     regex.compile(r"^[IVX]{1,4}[\.\)] ?((\p{Lu}.+))$")    # remove uppercase roman numerals like "II." and "II)" from beginning of segments
@@ -136,11 +137,11 @@ def noise_cleaning(path, regexes):
             for regex_ in regexes:                                      # iterating over list of regex patterns
                 if regex_.search(seg_t):
                     counter_cleaned += 1
-                    #print(seg_t)
+                    print(seg_t)
                     seg.text = regex_.search(seg_t).group(2)
-                    #print(seg.text)
+                    print(seg.text)
                     break                                               # to prevent regex overwriting on same segment
-    tree.write(path, encoding="UTF-8")
+    tree.write(path, encoding="UTF-8", xml_declaration=True)
     print("%i segments cleaned." % counter_cleaned)
     print()
 
@@ -161,7 +162,7 @@ def remove_blank_units(path):
                 body.remove(tu)
                 counter_rem += 1
                 print(seg_t)
-    tree.write(path, encoding="UTF-8")
+    tree.write(path, encoding="UTF-8", xml_declaration=True)
     print("%i TUs eliminated because half-empty." % counter_rem)
     print()
 
@@ -181,7 +182,7 @@ def remove_whitespaces(path):
                 seg.text = regex_.search(seg_t).group(1)
                 counter_whi += 1
                 #print(seg_t)
-    tree.write(path, encoding="UTF-8")              # overwriting the old file
+    tree.write(path, encoding="UTF-8", xml_declaration=True)              # overwriting the old file
     print("\n\n%i segments cleaned from whitespaces and other noise.\n\n" % counter_whi)
     print()
 
@@ -202,11 +203,14 @@ def select_TUs_with_wrong_lang(path):
         except:
             continue
         if "de" in detect_it or "it" in detect_de:    # broader alternative (every language other than it or de) => if "it" not in detect_it or "de" not in detect_de:
-            if len(source_segment.split()) > 8 and len(target_segment.split()) > 8: # just considering longer segments, shorter ones are more likely to be false positives, and they will be deleted anyway
-                counter += 1
+            if len(source_segment.split()) > 8 and len(target_segment.split()) > 8: # just considering longer segments, shorter ones are more likely to be false positives, and they will be deleted anyways
                 print("\n\n", detect_it, detect_de, "\t", source_segment, "\n\t\t", target_segment)
-    print(counter)
+                body.remove(tu)
+                counter += 1
+    tree.write(path, encoding="UTF-8", xml_declaration=True)
+    print("%i TUs removed" % counter)
 
+#reimplement the following to select segments manually, even though it is convenient
 '''
                 print("\n\n", detect_it, detect_de, "\t", source_segment, "\n\t\t", target_segment)
                 keep_delete = input("\nDo you want to retain this TU? (y/n) Press 's' to save")
@@ -240,6 +244,14 @@ def select_TUs_with_different_lenght(path):
         len_ratio = li[0] / li[1]
         if len(source_segment) > 60 and len(target_segment) > 60:       # may be useful to tweak these value and the following
             if len(source_segment) > len(target_segment) and len_ratio > 2:
+                body.remove(tu)
+                count += 1
+    tree.write(path, encoding="UTF-8", xml_declaration=True)
+    print("%i TUs removed because the lenght of one segment is more than double of the other segment" % count)
+
+
+#reimplement for manual selection
+'''                
                 print("\n\n", len(source_segment), " ", len(target_segment), "\t\t", source_segment, "\n", "{0:.3f}".format(len_ratio), "\t\t\t", target_segment)
                 keep_delete = input("\nDo you want to retain this TU? (y/n) Press 's' to save")
                 print(keep_delete)
@@ -254,8 +266,8 @@ def select_TUs_with_different_lenght(path):
                 else:
                     print("\nWrong input. TU has been retained.")
     print("%i TUs were eliminated" % count)
-    tree.write(path, encoding="UTF-8")              # overwriting the old file
-
+    tree.write(path, encoding="UTF-8", xml_declaration=True)              # overwriting the old file
+'''
 
 '''funzione di prova giusto per contare quante frasi parallele ho che rispettino il criterio di lunghezza di 10-20 parole'''
 def segment_counter(path):
@@ -282,21 +294,21 @@ def segment_counter(path):
 ''' LET'S CLEAN! Activate desired cleaning operations (respect this order). Could require more than one re-run 
 (at least 3/4 times, until no more cleaning operations are carried out) '''
 
-remove_untranslated(tmx_path)
+#remove_untranslated(tmx_path)
 
-remove_art_and_co(tmx_path)
+#remove_art_and_co(tmx_path)
 
-remove_punctuation_numeral_segments(tmx_path)
+#remove_punctuation_numeral_segments(tmx_path)
 
-noise_cleaning(tmx_path, patterns)
+#noise_cleaning(tmx_path, patterns)
 
-remove_whitespaces(tmx_path)
+#remove_whitespaces(tmx_path)
 
 #select_TUs_with_wrong_lang(tmx_path)                # manual selection
 
 #select_TUs_with_different_lenght(tmx_path)         # manual selection
 
-remove_blank_units(tmx_path)
+#remove_blank_units(tmx_path)
 
 #segment_counter(tmx_path)
 
