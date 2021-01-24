@@ -1,5 +1,5 @@
 # custom_MT
-## Python scripts for MT training (from web scraping to corpus cleaning)
+## Python scripts for corpus scraping and cleaning
 
 - `parallel_URLs_collection.py`:		collecting a parallel list of URLs of Italian and German laws from the LexBrowser database for subsequent text 
 						scraping. A first filtering is carried out based on a blacklist of terms in the Italian law title.
@@ -20,8 +20,14 @@
 
 - `tmx_cleaner.py`:		a toolkit for cleaning the parallel corpus in .tmx format (aligned with LF Aligner) and getting clean sentence-sentence
 				translation units:
-  - removing untranslated TUs
-  - cleaning sentences from noise at the beginning and the end of the segment
-  - removing TUs containing segments with only whitespaces
-  - removing leading and trailing spaces
-  - filtering, displaying and eliminating "bad" TUs with segments with different lenghts or wrong language
+  - `remove_untranslated()`:    removes TUs with identical source and target
+  - `remove_art_and_co()`:      a first TU cleaning. Noise at sentence beginning is removed ("Art. 1"). TUs with segments containing only non-relevant noise (such as ""Art. 1". "(1)", "1." "1bis.") are removed from the TM.
+  - `remove_punctuation_numeral_segments()`: removes TUs with at least one segment containing only punctuation and/or numbers.
+  - `noise_cleaning()`:     extensive segment cleaning
+    - removes noise at the beginning of segments: “(1)", "1.", "a.", "1)", "a)", "1.1", "1.1)", “(1/bis)”, "A 1)", "I.A.", "I.1)", "1.1.1", "1.1.1.1", "I.", "I)", "a1)", "a1.", "A)", "(A)", "•", ".", "-"
+    - removes noise at the end of segments: ">", " *)", “1)”, “(1)”
+    - removes other noise: single/double quotes if both at the beginning and the end of segments only; single/double quotes if only at the beginning or the end of segments
+  - `remove_blank_units()`:     removes half-empty TUs and TUs containing segments with only whitespaces.
+  - `remove_whitespaces()`:     removes leading and trailing whitespaces.
+  - `select_TUs_with_wrong_lang()`:     allows manual selection (delete or retain) of TUs containing segments whose detected language does not match the default it/de language.
+  - `select_TUs_with_different_lenght()`:    allows automatic or manual selection (delete or retain) of TUs whose length difference ratio is higher than a given threshold (indicating possible misalignment).
