@@ -15,10 +15,12 @@ from langdetect import detect
 retries = Retry(connect=5, read=2, redirect=5)                     # trying to reconnect to the website in case of error
 http = urllib3.PoolManager(retries=retries)
 
-with open(r"C:\Users\...\...\...", "r") as f:        # URL list is a .txt file with one URL per line
-    URL_list = f.read().splitlines()
+url_list = r""
+export_folder = r""
 
-export_folder = r"C:\Users\...\...\..."                                 # add export folder path here
+
+with open(url_list, "r") as f:        # URL list is a .txt file with one URL per line
+    URL_list = f.read().splitlines()
 
 def scraper(URL_list, export_folder):
     columns = ["file", "URL", "title", "detected language", "download"]       # columns for the csv report file

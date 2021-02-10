@@ -1,11 +1,11 @@
 '''
 
-todo: creare README dettagliato per tmx_cleaner.py e fare nuova cartella con tmx_cleaner.py e README.md
+todo: creare README dettagliato per tmx_cleaner.py e metterlo nel README.md principale
+todo: rimuovere segmenti composti da sola punteggiatura
 
-
-A toolkit for cleaning the parallel corpus in .tmx format (aligned with LF Aligner) and getting clean sentence-sentence
+A toolkit for cleaning and filtering the parallel corpus in .tmx format (aligned with LF Aligner) and getting clean sentence-sentence
 translation units:
-- remove_untranslated():    removes untranslated TUs, i.e. TUs with identical source and target
+- remove_untranslated():    removes untranslated TUs, i.e. TUs with identical or almost identical source and target
 - remove_art_and_co():      a first TU cleaning. Noise at sentence beginning is removed ("Art. 1"). TUs with segments
   containing only non-relevant noise (such as ""Art. 1". "(1)", "1." "1bis.") are removed from the TM.
 - remove_punctuation_numeral_segments(): removes TUs with at least one segment containing only punctuation and/or
@@ -20,15 +20,17 @@ translation units:
   language does not match the default it/de language.
 - select_TUs_with_different_lenght():    allows manual selection (delete or retain) of TUs whose length difference ratio
   is higher than a given threshold (indicating possible misalignment).
+- filter_per_token():   removing very long and very short segments (according to token number, which can be set manually)
 '''
 
-from langdetect import detect
+import langid
 import regex
 from lxml import etree
+from difflib import SequenceMatcher
 
-tmx_path = r"C:\Users\anton\Desktop\prove_download_scraper\prova19.10\merged_tmx19_(recleaned from scratch_22.01.2021; v.2).tmx"  # insert path of the .tmx file
+tmx_path = r"C:\Users\anton\Dropbox\Eurac_tesi\custom_MT\corpus\stplc_08022021_cleaned_no-TMop.tmx"  # insert path of the .tmx file
 
-'''Removing TUs with identical source and target'''
+'''Removing TUs with identical or almost identical source and target'''
 def remove_untranslated(path):
     counter_untr = 0
     nsmap = {"xml": "http://www.w3.org/XML/1998/namespace"}
@@ -40,8 +42,20 @@ def remove_untranslated(path):
         source_segment = tu.find("./tuv[@xml:lang='IT']/seg", namespaces=nsmap).text
         target_segment = tu.find("./tuv[@xml:lang='DE']/seg", namespaces=nsmap).text
         if source_segment == target_segment:
-            body.remove(tu)                                                             # removing untranslated TUs
-            counter_untr += 1
+            try:
+                body.remove(tu)
+                counter_untr += 1
+            except:
+                print("An error occurred. TU was not removed: %s \t %s" % (source_segment, target_segment))
+                pass
+        if len(source_segment) > 15 and len(target_segment) > 15 and SequenceMatcher(None, source_segment, target_segment).ratio() > 0.9:
+        # print(source_segment, "\n", target_segment, "\n")
+            try:
+                body.remove(tu)
+                counter_untr += 1
+            except:
+                print("An error occurred. TU was not removed: %s \t %s" % (source_segment, target_segment))
+                pass
     tree.write(path, encoding="UTF-8", xml_declaration=True)                                                  # overwriting the TM
     print("%i untranslated TUs removed." % counter_untr)
     print()
@@ -82,7 +96,7 @@ def remove_art_and_co(path):
 def remove_punctuation_numeral_segments(path):
     counter_art_rem2 = 0
     nsmap = {"xml": "http://www.w3.org/XML/1998/namespace"}
-    regex_rem2 = regex.compile(r"^[\d\W]+$")
+    regex_rem2 = regex.compile(r"^[\d\W\s]+$")
     tree = etree.parse(path)
     root = tree.getroot()
     body = root.find("body")
@@ -124,8 +138,7 @@ patterns = [
     regex.compile(r"^[IVX]{1,4}[\.\)] ?((\p{Lu}.+))$")    # remove uppercase roman numerals like "II." and "II)" from beginning of segments
 ]
 
-'''A second segment cleaning stage.'''
-def noise_cleaning(path, regexes):
+def noise_cleaning_part(path, regexes):
     counter_cleaned = 0
     tree = etree.parse(path)
     root = tree.getroot()
@@ -137,13 +150,25 @@ def noise_cleaning(path, regexes):
             for regex_ in regexes:                                      # iterating over list of regex patterns
                 if regex_.search(seg_t):
                     counter_cleaned += 1
-                    print(seg_t)
+                    #print(seg_t)
                     seg.text = regex_.search(seg_t).group(2)
-                    print(seg.text)
+                    #print(seg.text)
                     break                                               # to prevent regex overwriting on same segment
     tree.write(path, encoding="UTF-8", xml_declaration=True)
-    print("%i segments cleaned." % counter_cleaned)
-    print()
+    print("Partial cleaning done (%i segments)." % counter_cleaned)
+    return counter_cleaned
+
+'''A second segment cleaning stage. Recursive until there's no more uncleaned segments'''
+def noise_cleaning(path, regexes):
+    total_cleaned = 0
+    noise_cleaning_part(path, regexes)
+    counter_cleaned = noise_cleaning_part(path, regexes)
+    if total_cleaned == 0:
+        total_cleaned = counter_cleaned
+    if counter_cleaned != 0:
+        noise_cleaning_part(path, regexes)
+        total_cleaned += counter_cleaned
+    print("%i total segments cleaned." % total_cleaned)
 
 
 '''Removing 1:0 TUs'''          # LF aligner actually already eliminates them, but new 1:0 TUs can be generated during other cleaning operations
@@ -187,8 +212,13 @@ def remove_whitespaces(path):
     print()
 
 
-'''Printing single TUs with wrong detected language; user input to retain or eliminate the TU'''
 def select_TUs_with_wrong_lang(path):
+    '''
+    Printing single TUs with wrong detected language; user input to retain or eliminate the TU
+    Roundabout for unsolved issue of langid (doesn't work with segments with only UPPERCASE characters)
+    '''
+    print("Removing TUs with wrong detected language...")
+    langid.set_languages(['de', 'it'])
     nsmap = {"xml": "http://www.w3.org/XML/1998/namespace"}
     tree = etree.parse(path)
     root = tree.getroot()
@@ -197,13 +227,16 @@ def select_TUs_with_wrong_lang(path):
     for tu in root.iter("tu"):
         source_segment = tu.find("./tuv[@xml:lang='IT']/seg", namespaces=nsmap).text
         target_segment = tu.find("./tuv[@xml:lang='DE']/seg", namespaces=nsmap).text
+        if source_segment.isupper() and target_segment.isupper():
+            source_segment = source_segment.lower()
+            target_segment = target_segment.lower()
         try:
-            detect_it = detect(source_segment)
-            detect_de = detect(target_segment)
+            detect_it = langid.classify(source_segment)
+            detect_de = langid.classify(target_segment)
         except:
             continue
         if "de" in detect_it or "it" in detect_de:    # broader alternative (every language other than it or de) => if "it" not in detect_it or "de" not in detect_de:
-            if len(source_segment.split()) > 8 and len(target_segment.split()) > 8: # just considering longer segments, shorter ones are more likely to be false positives, and they will be deleted anyways
+            if len(source_segment.split()) > 8 and len(target_segment.split()) > 8: # just considering longer segments, shorter ones are more likely to be false positives
                 print("\n\n", detect_it, detect_de, "\t", source_segment, "\n\t\t", target_segment)
                 body.remove(tu)
                 counter += 1
@@ -229,8 +262,18 @@ def select_TUs_with_wrong_lang(path):
 '''
 
 
-'''Printing single TUs with significant length difference; user input to retain or eliminate the TU'''
+'''
+Printing single TUs with significant length difference; user input to retain or eliminate the TU
+
+
+ModernMT cleaner (ModernMT/DataCollection/baseline/filter_hunalign_bitext.py) uses a similar approach: to solve the 
+problem for short segments, they add 15 (words or characters? I think characters...). My current criteria are not as 
+strict (discarding only segments with difference higher than 2x, instead MMT higher than 1,5x)
+
+if float((len(source) + 15)) / float(len(target) + 15) > 1.5:
+'''
 def select_TUs_with_different_lenght(path):
+    print("Removing TUs with highly different length ratio between segments...")
     nsmap = {"xml": "http://www.w3.org/XML/1998/namespace"}
     tree = etree.parse(path)
     root = tree.getroot()
@@ -239,13 +282,14 @@ def select_TUs_with_different_lenght(path):
     for tu in root.iter("tu"):
         source_segment = tu.find("./tuv[@xml:lang='IT']/seg", namespaces=nsmap).text
         target_segment = tu.find("./tuv[@xml:lang='DE']/seg", namespaces=nsmap).text
-        li = [len(source_segment), len(target_segment)]
+        li = [(len(source_segment) + 15), (len(target_segment) + 15)]
         li.sort(reverse=True)
         len_ratio = li[0] / li[1]
-        if len(source_segment) > 60 and len(target_segment) > 60:       # may be useful to tweak these value and the following
-            if len(source_segment) > len(target_segment) and len_ratio > 2:
-                body.remove(tu)
-                count += 1
+        if len_ratio > 2:
+            body.remove(tu)
+            print(source_segment)
+            print("\t", target_segment)
+            count += 1
     tree.write(path, encoding="UTF-8", xml_declaration=True)
     print("%i TUs removed because the lenght of one segment is more than double of the other segment" % count)
 
@@ -287,28 +331,51 @@ def segment_counter(path):
     print(counter_total)
     print(counter_right_length)
 
+def filter_per_token(path, min, max):
+    '''
+    Filters out very long and very short segments
+    according to number of tokens
+    '''
+    counter = 0
+    nsmap = {"xml": "http://www.w3.org/XML/1998/namespace"}
+    tree = etree.parse(path)                                        # parsing the TMX file
+    root = tree.getroot()
+    body = root.find("body")
+    print("Removing untranslated TUs...")
+    for tu in root.iter("tu"):
+        source_segment = tu.find("./tuv[@xml:lang='IT']/seg", namespaces=nsmap).text
+        target_segment = tu.find("./tuv[@xml:lang='DE']/seg", namespaces=nsmap).text
+        if len(source_segment.split()) < min or len(source_segment.split()) > max:
+            #body.remove(tu)
+            counter += 1
+            print(source_segment)
+        if len(target_segment.split()) < min or len(target_segment.split()) > max:
+            #body.remove(tu)
+            counter += 1
+            print(target_segment)
+    tree.write(path, encoding="UTF-8", xml_declaration=True)
+    print("%i segments filtered out because either shorter than %i tokens or longer than %i tokens." % (counter, min, max))
 
 
+''' LET'S CLEAN! Activate desired cleaning operations '''
 
+remove_untranslated(tmx_path)
 
-''' LET'S CLEAN! Activate desired cleaning operations (respect this order). Could require more than one re-run 
-(at least 3/4 times, until no more cleaning operations are carried out) '''
+remove_art_and_co(tmx_path)
 
-#remove_untranslated(tmx_path)
+remove_punctuation_numeral_segments(tmx_path)
 
-#remove_art_and_co(tmx_path)
+noise_cleaning(tmx_path, patterns)
 
-#remove_punctuation_numeral_segments(tmx_path)
-
-#noise_cleaning(tmx_path, patterns)
-
-#remove_whitespaces(tmx_path)
+remove_whitespaces(tmx_path)
 
 #select_TUs_with_wrong_lang(tmx_path)                # manual selection
 
-#select_TUs_with_different_lenght(tmx_path)         # manual selection
+select_TUs_with_different_lenght(tmx_path)         # manual selection
 
-#remove_blank_units(tmx_path)
+remove_blank_units(tmx_path)
+
+#filter_per_token(tmx_path, 3, 80)
 
 #segment_counter(tmx_path)
 
