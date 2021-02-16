@@ -1,6 +1,7 @@
 '''
-Dividing dataset into training set and test set. Test set contains 2000 proper (starting with uppercase letter) segments from 10-20 words.
-I can decide, eventually, to select test segments among real sentences ending with a full stop.
+Dividing dataset into training set and test set. Test set contains 4000? proper (starting with uppercase letter) sentences with 10-20 words length.
+Before selecting the test set, we carry out an advanced deduplication operation (Pinnis 2018), in order to avoid having almost-duplicates
+in training set and test set, but still keeping that potentially useful almost-duplicates in the training set.
 '''
 import random
 
