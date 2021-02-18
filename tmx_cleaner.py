@@ -1,5 +1,7 @@
 '''
 
+
+
 todo: creare README dettagliato per tmx_cleaner.py e metterlo nel README.md principale
 todo: fix total count of noise_cleaning()?
 
@@ -25,18 +27,25 @@ translation units:
 
 import langid
 import regex
-from lxml import etree
 from difflib import SequenceMatcher
 import string
 from Levenshtein import distance
+from collections import Counter
+from lxml import etree
+from nltk import word_tokenize
 
 
-tmx_path = r"C:\Users\anton\Documents\Documenti importanti\SSLMIT FORLI M.A. SPECIALIZED TRANSLATION 2019-2021\tesi\corpus\stplc_08022021_raw - counting_filtering_operations.tmx"  # insert path of the .tmx file
+tmx_path = r"C:\Users\anton\Dropbox\Eurac_tesi\custom_MT\corpus\stplc_19102020_DeF_cleaned.tmx"  # insert path of the .tmx file
 txt_path = r"C:\Users\anton\Documents\Documenti importanti\SSLMIT FORLI M.A. SPECIALIZED TRANSLATION 2019-2021\tesi\corpus\stplc_08022021_raw - test_cleaning14022020.txt"  # insert path to the .txt file (for deduplicate() only)
 
 
-'''Removing TUs with identical or almost identical source and target'''
+
 def remove_untranslated(path):
+    '''
+    Removing TUs with identical or almost identical source and target.
+    Almost identical source-target: sentence pairs with a Levenshtein edit distance < 2.0
+    or an edit distance ratio < 0.1 (Lu et al. 2018)
+    '''
     counter_untr = 0
     counter_similar = 0
     nsmap = {"xml": "http://www.w3.org/XML/1998/namespace"}
@@ -57,7 +66,7 @@ def remove_untranslated(path):
         edit_distance = distance(source_segment, target_segment)
         avglen = (len(source_segment) + len(target_segment)) / 2
         edit_distance_ratio = edit_distance / avglen
-        if edit_distance < 2 or edit_distance_ratio < 0.1:              # parameters by Pinnis 2018
+        if edit_distance < 2 or edit_distance_ratio < 0.1:              # parameters by Lu et al. 2018
         #if SequenceMatcher(None, source_segment, target_segment).ratio() > 0.8:
             #print(edit_distance, edit_distance_ratio, "\n", source_segment, "\n", target_segment, "\n")
             try:
@@ -103,8 +112,10 @@ def remove_art_and_co(path):
     print("%i TUs removed ('Art. ...' or other non-essential segments only)." % counter_art_rem)
     print()
 
-''' Removing translation units whose at least one segment contains punctuation and/or numbers only '''
-def remove_punctuation_numeral_segments(path):
+def punct_digit_filter(path):
+    '''
+    Removing translation units whose at least one segment contains punctuation and/or digits only.
+    '''
     counter_art_rem2 = 0
     nsmap = {"xml": "http://www.w3.org/XML/1998/namespace"}
     regex_rem2 = regex.compile(r"^[\d\p{Punct}\s]+$")
@@ -127,7 +138,7 @@ def remove_punctuation_numeral_segments(path):
     print()
 
 
-def numbers_punctuation2letters_ratio_filter(path):
+def non_alphabetical_ratio_filter(path):
     '''
     Filtering out TUs with segments having a number-punctuation/letters ratio higher than 0.6
     '''
@@ -165,7 +176,7 @@ patterns = [
     regex.compile(r"^[“„'\"](([^“„'\"”]+))[“'\"”]$"),     # removing quotes if only at the beginning and end of segments
     regex.compile(r"^(\(\d{1,3}\)|•|\.(?!\.)|\-|\*|·) ?(.+)$"),       # removing "(1) ", "• ", ". "* ", "· " and "- " from beginning of segment
     regex.compile(r"^[“„'\"]?(\(?[A-Z]\)|[a-z]?\d\d?[\.\)]|[a-m]{1,2}\.|[a-z]\)) ?(?!Jänner|Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember)([\p{Lu}\p{Ll}“„'\"”].+)[“„'\"]?$"),      #removing "1.", "a.", "1)", "a)", "(1)", "(a)", "a1)", "a1.", "A)", "(A)" (even when preceded by apostrophes or quotation marks)  # added final square parentheses to eliminate eventual final quotation marks; added exceptions for n. and numbers followed by months
-    regex.compile(r"^((.+(\(.+\))?(?<! n|Nr|Art|art|\p{Lu})[\.\);,])) \d\d?\d?\)$"),       #removing numbers with closed parenthesis at end of segment, like "1)" (if not preceded by "Art.", "Nr.", "n.", ")
+    regex.compile(r"^((.+(\(.+\))?(?<! n|Nr|Art|art|\p{Lu})[\.\);,])) ?\d\d?\d?\)$"),       #removing numbers with closed parenthesis at end of segment, like "1)" (if not preceded by "Art.", "Nr.", "n.", ")
     regex.compile(r"^((.+)) ?\(\d\d?\d?\)$"),           # removing (1) from end of segments
     regex.compile(r"^(\()(.+)\)$"),                     # removing parentheses when both at beginning and end of segment
     regex.compile(r"^\[ ?((.+)) ?\]?$"),  # removing square brackets both at beginning and end of segments
@@ -183,7 +194,10 @@ patterns = [
     regex.compile(r"^\d\d?\.\d\d?\.\d\d?\.\d\d?\.\d\d? ?((\p{Lu}.+))$"), # removing "3.3.4.1.3" at the beginning of segments (with or without spaces)
     regex.compile(r"^[IVX]{1,4}[\.\)] ?((\p{Lu}.+))$"),    # remove uppercase roman numerals like "II." and "II)" from beginning of segments
     regex.compile(r"^\d\d?\.\d\d?\.(\d\d?\.)? ?(\p{Lu}.+)$"),       # remove "1.1." and "1.1.1."
-    regex.compile(r"^\d\d?\.\d\d?\.\d\d?\.\d\d?\.(\d\d?\.)? ?(\p{Lu}.+)$")  # remove "1.1.1.1." and "1.1.1.1.1."
+    regex.compile(r"^\d\d?\.\d\d?\.\d\d?\.\d\d?\.(\d\d?\.)? ?(\p{Lu}.+)$"),  # remove "1.1.1.1." and "1.1.1.1.1."
+    regex.compile(r"^[A-Z]{1,2}\.?\d\.? ((.+))$"),              # removing "C.5 ", "C.5. ", "H7 " at the beginning of segments
+    regex.compile(r"^[A-MO-RT-Z]\. ((.+))$"),          #removing "A. " at the beginning of segments (except N. and S. (Numero; San Valentino etc.)
+    regex.compile(r"^[A-Z]\d[\):] ((.+))$")             #removing "C3) " and "Q1: " at the beginning of sentences
 ]
 
 def noise_cleaning_part(path, regexes):
@@ -198,16 +212,18 @@ def noise_cleaning_part(path, regexes):
             for regex_ in regexes:                                      # iterating over list of regex patterns
                 if regex_.search(seg_t):
                     counter_cleaned += 1
-                    #print(seg_t)
+                    print(seg_t)
                     seg.text = regex_.search(seg_t).group(2)
-                    #print(seg.text)
+                    print(seg.text)
                     break                                               # to prevent regex overwriting on same segment
     tree.write(path, encoding="UTF-8", xml_declaration=True)
     print("Partial cleaning done (%i segments)." % counter_cleaned)
     return counter_cleaned
 
-'''A second segment cleaning stage. Recursive until there's no more uncleaned segments'''
 def noise_cleaning(path, regexes):
+    '''
+    A second, Regex-based segment cleaning stage.
+    '''
     counter_cleaned = noise_cleaning_part(path, regexes)
     noise_cleaning_part(path, regexes)
     total_cleaned = counter_cleaned
@@ -217,8 +233,83 @@ def noise_cleaning(path, regexes):
     print("%i total segments cleaned." % total_cleaned)
 
 
-'''Removing 1:0 TUs'''          # LF aligner actually already eliminates them, but new 1:0 TUs can be generated during other cleaning operations
+def dehyphenation(path):
+    '''
+    It generates vocabularies for each corpus (it and de) and validates whether a hyphenated word is more frequent as
+    1) hyphenated or 2) merged. If 2, it converts the word from hyphenated to merged.
+    It has to be re-run because it considers only the first instance of hyphenated word in the sentence.
+    '''
+    #Generating vocabularies
+    print("Generating vocabularies...")
+    corpus_it = []
+    corpus_de = []
+    nsmap = {"xml": "http://www.w3.org/XML/1998/namespace"}
+    tree = etree.parse(path)  # parsing the TMX file
+    root = tree.getroot()
+    for tu in root.iter("tu"):
+        source_segment = tu.find("./tuv[@xml:lang='it']/seg", namespaces=nsmap).text
+        target_segment = tu.find("./tuv[@xml:lang='de']/seg", namespaces=nsmap).text
+        corpus_it.append(source_segment)
+        corpus_de.append(target_segment)
+    tokens_it = word_tokenize("\n".join(corpus_it))
+    tokens_de = word_tokenize("\n".join(corpus_de))
+    vocab_it = Counter(tokens_it)                   # italian vocabulary (dictionary of token:frequency)
+    vocab_de = Counter(tokens_de)                   # german vocabulary
+    counter_dehyphen_it = 0
+    counter_dehyphen_de = 0
+    print("Dehyphenating...")
+    for tu in root.iter("tu"):
+        source_segment = tu.find("./tuv[@xml:lang='it']/seg", namespaces=nsmap)
+        target_segment = tu.find("./tuv[@xml:lang='de']/seg", namespaces=nsmap)
+        source_text = source_segment.text
+        target_text = target_segment.text
+        re = regex.compile(r"(([A-Za-zöäüÖÄÜ]+)\-([A-Za-zöäüÖÄÜ]+))")
+        found_it = regex.search(re, source_text)
+        if found_it:
+            frequency_it_hyph = vocab_it[found_it.group(1)]
+            it_merged = found_it.group(2) + found_it.group(3)
+            try:
+                frequency_it_merged = vocab_it[it_merged]
+            except:
+                continue
+            if frequency_it_hyph >= frequency_it_merged:
+                continue
+            elif frequency_it_merged > frequency_it_hyph:
+                print(found_it.group(1))
+                print(source_text)
+                new_it = regex.sub(re, it_merged, source_text, 1)
+                source_segment.text = new_it
+                print(new_it)
+                print()
+                counter_dehyphen_it += 1
+        found_de = regex.search(re, target_text)
+        if found_de:
+            frequency_de_hyph = vocab_de[found_de.group(1)]
+            de_merged = found_de.group(2) + found_de.group(3)
+            try:
+                frequency_de_merged = vocab_de[de_merged]
+            except:
+                continue
+            if frequency_de_hyph >= frequency_de_merged:
+                continue
+            elif frequency_de_merged > frequency_de_hyph:
+                print(found_de.group(1))
+                print(target_text)
+                new_de = regex.sub(re, de_merged, target_text, 1)
+                target_segment.text = new_de
+                print(new_de)
+                print()
+                counter_dehyphen_de += 1
+    tree.write(path, encoding="UTF-8", xml_declaration=True)
+    print("Dehyphenated (Italian): ", counter_dehyphen_it)
+    print("Dehypheanted (German): ", counter_dehyphen_de)
+
+
 def remove_blank_units(path):
+    '''
+    Removing 1:0 TUs. LF aligner actually already eliminates them, but new 1:0 TUs can be generated
+    during other cleaning operations.
+    '''
     counter_rem = 0
     tree = etree.parse(path)
     root = tree.getroot()
@@ -238,8 +329,10 @@ def remove_blank_units(path):
     print()
 
 
-'''Removing leading and trailing spaces, list symbols, (•,-, etc.)'''
 def remove_whitespaces(path):
+    '''
+    Removing leading and trailing spaces, list symbols, (•,-, etc.)
+    '''
     counter_whi = 0
     tree = etree.parse(path)
     root = tree.getroot()
@@ -258,10 +351,11 @@ def remove_whitespaces(path):
     print()
 
 
-def select_TUs_with_wrong_lang(path):
+def language_filter(path):
     '''
-    Printing single TUs with wrong detected language; user input to retain or eliminate the TU
-    Roundabout for unsolved issue of langid (doesn't work with segments with only UPPERCASE characters)
+    Discarding sentence pairs whose detected languages are not it-de.
+    Roundabout for unsolved issue of langid (doesn't work with segments with only UPPERCASE characters):
+    if all uppercase, convert to lowercase, then run langid.
     '''
     print("Removing TUs with wrong detected language...")
     langid.set_languages(['de', 'it'])
@@ -289,7 +383,7 @@ def select_TUs_with_wrong_lang(path):
     tree.write(path, encoding="UTF-8", xml_declaration=True)
     print("%i TUs removed" % counter)
 
-#reimplement the following to select segments manually, even though it is convenient
+#reimplement the following to select segments manually (user input)
 '''
                 print("\n\n", detect_it, detect_de, "\t", source_segment, "\n\t\t", target_segment)
                 keep_delete = input("\nDo you want to retain this TU? (y/n) Press 's' to save")
@@ -308,17 +402,11 @@ def select_TUs_with_wrong_lang(path):
 '''
 
 
-'''
-Printing single TUs with significant length difference; user input to retain or eliminate the TU
-
-
-ModernMT cleaner (ModernMT/DataCollection/baseline/filter_hunalign_bitext.py) uses a similar approach: to solve the 
-problem for short segments, they add 15 (words or characters? I think characters...). My current criteria are not as 
-strict (discarding only segments with difference higher than 2x, instead MMT higher than 1,5x)
-
-if float((len(source) + 15)) / float(len(target) + 15) > 1.5:
-'''
-def select_TUs_with_different_lenght(path):
+def length_ratio_filter(path):
+    '''
+    Discarding sentence pairs whose length ratio is higher than a given threshold.
+    [(longest_sentence + 15) / (shortest_sentence + 15)] > 1.8
+    '''
     print("Removing TUs with highly different length ratio between segments...")
     nsmap = {"xml": "http://www.w3.org/XML/1998/namespace"}
     tree = etree.parse(path)
@@ -331,16 +419,16 @@ def select_TUs_with_different_lenght(path):
         li = [(len(source_segment) + 15), (len(target_segment) + 15)]
         li.sort(reverse=True)
         len_ratio = li[0] / li[1]
-        if len_ratio > 2:
+        if len_ratio > 1.8:
             body.remove(tu)
-            #print(len_ratio, "\t", source_segment)
-            #print("\t\t\t", target_segment)
+            print(len_ratio, "\t", source_segment)
+            print("\t\t\t", target_segment)
             count += 1
     tree.write(path, encoding="UTF-8", xml_declaration=True)
-    print("%i TUs removed because the lenght of one segment is more than double of the other segment" % count)
+    print("%i TUs removed because of high length ratio difference." % count)
 
 
-#reimplement for manual selection
+#reimplement for manual selection (user input)
 '''                
                 print("\n\n", len(source_segment), " ", len(target_segment), "\t\t", source_segment, "\n", "{0:.3f}".format(len_ratio), "\t\t\t", target_segment)
                 keep_delete = input("\nDo you want to retain this TU? (y/n) Press 's' to save")
@@ -359,8 +447,10 @@ def select_TUs_with_different_lenght(path):
     tree.write(path, encoding="UTF-8", xml_declaration=True)              # overwriting the old file
 '''
 
-'''funzione di prova giusto per contare quante frasi parallele ho che rispettino il criterio di lunghezza di 10-20 parole'''
-def segment_counter(path):
+def segment_counter(path, n):
+    '''
+    A simple sentence pair counter according to a given length (tokens).
+    '''
     nsmap = {"xml": "http://www.w3.org/XML/1998/namespace"}
     tree = etree.parse(path)
     root = tree.getroot()
@@ -372,15 +462,14 @@ def segment_counter(path):
         target_segment = tu.find("./tuv[@xml:lang='de']/seg", namespaces=nsmap).text
         source_tokens = source_segment.split()
         target_tokens = target_segment.split()
-        if len(source_tokens) >= 100 and len(target_tokens) >= 100:
+        if len(source_tokens) >= n and len(target_tokens) >= n:
             counter_right_length += 1
     print(counter_total)
     print(counter_right_length)
 
 def filter_per_token(path, min, max):
     '''
-    Filters out very long and very short segments
-    according to number of tokens
+    Filters out very long and very short segments according to number of tokens.
     '''
     counter = 0
     nsmap = {"xml": "http://www.w3.org/XML/1998/namespace"}
@@ -426,7 +515,8 @@ def deduplicate(path):
     '''
     More sophisticated deduplicator (based on Pinnis 2018)
     In order to do so:
-    - whitespaces and punctuation are removed;
+    - whitespaces and punctuation are removed
+    - dates are replaced with placeholder
     - numbers are replaced with a placeholder
     - sentence pairs are lowercased
     :param path: path to the tab-separated .txt corpus as input file
@@ -472,18 +562,20 @@ def deduplicate(path):
 
 #remove_whitespaces(tmx_path)
 
+#dehyphenation(tmx_path)
 
-remove_punctuation_numeral_segments(tmx_path)
 
-numbers_punctuation2letters_ratio_filter(tmx_path)
+#punct_digit_filter(tmx_path)
 
-remove_untranslated(tmx_path)
+#non_alphabetical_ratio_filter(tmx_path)
 
-remove_blank_units(tmx_path)
+#remove_untranslated(tmx_path)
 
-select_TUs_with_wrong_lang(tmx_path)
+#remove_blank_units(tmx_path)
 
-select_TUs_with_different_lenght(tmx_path)
+#language_filter(tmx_path)
+
+#length_ratio_filter(tmx_path)
 
 
 
