@@ -25,10 +25,10 @@
   </component>
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/.." />
   </component>
-  <component name="RunManager" selected="Python.evaluation_metrics">
-    <configuration name="URLs_rechtssprechung-im-internet" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="Python.aligned2mapping_file">
+    <configuration name="LexScraper_full" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="py_scripts" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -36,11 +36,53 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$USER_HOME$/PycharmProjects/GIM, VIM, RIM" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/LexScraper_full.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="aligned2mapping_file" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="py_scripts" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/aligned2mapping_file.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="calign" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="py_scripts" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$USER_HOME$/Desktop/prove_download_scraper/stplc_full_25.02" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$USER_HOME$/PycharmProjects/GIM, VIM, RIM/URLs_rechtssprechung-im-internet.py" />
+      <option name="SCRIPT_NAME" value="$USER_HOME$/Desktop/prove_download_scraper/stplc_full_25.02/calign.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -49,7 +91,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="corpus2vocabulary" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="prove" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="py_scripts" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -61,7 +103,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/corpus2vocabulary.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/prove.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -70,7 +112,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="dataset_splitting_dedupe" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="unpaired_texts_filter" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="py_scripts" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -82,49 +124,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/dataset_splitting_dedupe.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="evaluation_metrics" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="py_scripts" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/evaluation_metrics.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="tmx_cleaner" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="py_scripts" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/tmx_cleaner.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/unpaired_texts_filter.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -135,11 +135,11 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.evaluation_metrics" />
-        <item itemvalue="Python.dataset_splitting_dedupe" />
-        <item itemvalue="Python.tmx_cleaner" />
-        <item itemvalue="Python.corpus2vocabulary" />
-        <item itemvalue="Python.URLs_rechtssprechung-im-internet" />
+        <item itemvalue="Python.aligned2mapping_file" />
+        <item itemvalue="Python.unpaired_texts_filter" />
+        <item itemvalue="Python.LexScraper_full" />
+        <item itemvalue="Python.calign" />
+        <item itemvalue="Python.prove" />
       </list>
     </recent_temporary>
   </component>
@@ -157,26 +157,26 @@
     <servers />
   </component>
   <component name="WindowStateProjectService">
-    <state x="463" y="120" key="FileChooserDialogImpl" timestamp="1607446658286">
+    <state x="463" y="120" key="FileChooserDialogImpl" timestamp="1614378059303">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state x="463" y="120" key="FileChooserDialogImpl/0.0.1366.728@0.0.1366.728" timestamp="1607446658286" />
-    <state width="1345" height="202" key="GridCell.Tab.0.bottom" timestamp="1613695666835">
+    <state x="463" y="120" key="FileChooserDialogImpl/0.0.1366.728@0.0.1366.728" timestamp="1614378059303" />
+    <state width="1345" height="247" key="GridCell.Tab.0.bottom" timestamp="1614536651496">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1345" height="202" key="GridCell.Tab.0.bottom/0.0.1366.728@0.0.1366.728" timestamp="1613695666835" />
-    <state width="1345" height="202" key="GridCell.Tab.0.center" timestamp="1613695666835">
+    <state width="1345" height="247" key="GridCell.Tab.0.bottom/0.0.1366.728@0.0.1366.728" timestamp="1614536651496" />
+    <state width="1345" height="247" key="GridCell.Tab.0.center" timestamp="1614536651496">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1345" height="202" key="GridCell.Tab.0.center/0.0.1366.728@0.0.1366.728" timestamp="1613695666835" />
-    <state width="1345" height="202" key="GridCell.Tab.0.left" timestamp="1613695666835">
+    <state width="1345" height="247" key="GridCell.Tab.0.center/0.0.1366.728@0.0.1366.728" timestamp="1614536651496" />
+    <state width="1345" height="247" key="GridCell.Tab.0.left" timestamp="1614536651495">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1345" height="202" key="GridCell.Tab.0.left/0.0.1366.728@0.0.1366.728" timestamp="1613695666835" />
-    <state width="1345" height="202" key="GridCell.Tab.0.right" timestamp="1613695666835">
+    <state width="1345" height="247" key="GridCell.Tab.0.left/0.0.1366.728@0.0.1366.728" timestamp="1614536651495" />
+    <state width="1345" height="247" key="GridCell.Tab.0.right" timestamp="1614536651496">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1345" height="202" key="GridCell.Tab.0.right/0.0.1366.728@0.0.1366.728" timestamp="1613695666835" />
+    <state width="1345" height="247" key="GridCell.Tab.0.right/0.0.1366.728@0.0.1366.728" timestamp="1614536651496" />
     <state width="1345" height="223" key="GridCell.Tab.1.bottom" timestamp="1613434184074">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
@@ -193,10 +193,10 @@
       <screen x="0" y="0" width="1366" height="728" />
     </state>
     <state width="1345" height="223" key="GridCell.Tab.1.right/0.0.1366.728@0.0.1366.728" timestamp="1613434184074" />
-    <state x="379" y="189" key="com.intellij.ide.util.TipDialog" timestamp="1613638724103">
+    <state x="379" y="189" key="com.intellij.ide.util.TipDialog" timestamp="1614436219409">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state x="379" y="189" key="com.intellij.ide.util.TipDialog/0.0.1366.728@0.0.1366.728" timestamp="1613638724103" />
+    <state x="379" y="189" key="com.intellij.ide.util.TipDialog/0.0.1366.728@0.0.1366.728" timestamp="1614436219409" />
     <state x="346" y="49" width="672" height="678" key="search.everywhere.popup" timestamp="1611329753880">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
