@@ -3,6 +3,8 @@
  Creating a comma-separated file of parallel (German and Italian) URLs of all laws contained in the LexBrowser database;
  exporting two separate (parallel) txt .lists of URLs to be used for scraping.
 
+ update 23.02.2021: New blacklist-based filtering.
+
 '''
 
 import urllib3
@@ -23,7 +25,7 @@ section = soup.find(id="documento")                          # searching in the 
 for link in section.find_all("a"):
     list_years.append(url_domain + link.get('href'))     # getting absolute links by appending local links to the domain
 
-print("\nCollecting Italian URLs...")
+print("Collecting Italian URLs...")
 
 IT_URLs = []                                             # getting URLs for all Italian laws and putting them in a list
 for year in list_years:
@@ -33,16 +35,21 @@ for year in list_years:
     for link in section.find_all("a"):
         IT_URLs.append(url_domain + link.get('href'))
 
-print("\nGetting German URLs and pairing...")
+print("\nGetting German URLs and filtering out untraslated...")
 
 ''' blacklist of terms that identify untranslated text pairs '''
-blacklist = ["Corte costituzionale",        #these are almost never translated to German, still, the "German" version (with Italian text) may be on the LexBrowser
+blacklist_it = ["Corte costituzionale",        #these are almost never translated to German, still, the "German" version (with Italian text) may be on the LexBrowser
              "TAR",
              "T.A.R.",
              "Verwaltungsgericht",          #sometimes they just translate the title, but the text is in Italian
              "Verfassungsgerichtshof",
              "Sentenza",
              "Beschluss"]                   #actually some of them are in both languages, but the title remained in German (s. http://lexbrowser.provinz.bz.it/doc/it/6337/beschluss_n_2913_del_14_12_2009.aspx)
+
+blacklist_de = ["Delibera",
+                 "Decreto",
+                 "Ordinanza",
+                 "Legge"]
 
 ''' pairing URLs based on link from one law to another, by changing language (switch to DE) '''
 paired_URLs = {}
@@ -57,18 +64,24 @@ for id, it_URL in enumerate(IT_URLs):
         continue
     de_URL_loc = section.get('href')                                                               # getting DE URL
     ''' filtering out untranslated laws by strings contained in law title '''
-    law_title = soup.title.string                                                                  # getting IT title
-    if any(term in law_title for term in blacklist):                        # checking if blacklisted terms in IT title
+    law_title_it = soup.title.string                                                                  # getting IT title
+    if any(term in law_title_it for term in blacklist_it):                   # checking if blacklisted terms in IT title
         print("%s discarded because Italian law title contains blacklisted term (probably untranslated text)" % it_URL)
     else:
         de_URL = url_domain + de_URL_loc + "?view=1"                            # building complete URL of German laws
-        paired_URLs[it_URL] = de_URL                                            # adding pair of IT and DE URLs to dict
-        print("%(id)i out of %(tot)i URLs processed." % {"id": id+1, "tot": len(IT_URLs)})
+        html = http.request('GET', de_URL).data
+        soup = BeautifulSoup(html, features="lxml")
+        law_title_de = soup.title.string
+        if any(term in law_title_de for term in blacklist_de):
+            print("%s discarded because German law title contains blacklisted term (probably untranslated text)" % de_URL)
+        else:
+            paired_URLs[it_URL] = de_URL                                         # adding pair of IT and DE URLs to dict
+            print("\r", "%i out of %i URLs processed." % (id+1, len(IT_URLs)), end="")
 
 print("\nExporting as CSV...")
 
 ''' exporting paired list of URLs as .csv file '''
-pd.DataFrame.from_dict(data=paired_URLs, orient='index').to_csv('parallel_URLs.csv', sep=";", header=False)
+pd.DataFrame.from_dict(data=paired_URLs, orient='index').to_csv('parallel_URLs_stplc_full.csv', sep=";", header=False)
 
 ''' exporting the separate lists of URLs as .txt files '''
 it_list = []
@@ -79,9 +92,9 @@ for it, de in paired_URLs.items():
 it_txt = "\n".join(it_list)
 de_txt = "\n".join(de_list)
 
-with open("it_URLs.txt", "w", encoding="utf-8", newline="\n") as file:          # writing .txt with IT URLs
+with open("it_URLs_stplc_full.txt", "w", encoding="utf-8", newline="\n") as file:          # writing .txt with IT URLs
     file.write(it_txt)
-with open("de_URLs.txt", "w", encoding="utf-8", newline="\n") as file:          # writing .txt with DE URLs
+with open("de_URLs_stplc_full.txt", "w", encoding="utf-8", newline="\n") as file:          # writing .txt with DE URLs
     file.write(de_txt)
 
 print("\nDone!")
