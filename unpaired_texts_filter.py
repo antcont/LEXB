@@ -9,14 +9,14 @@ A filter for unpaired bitexts:
 import os.path
 import re
 
-IT_path = r"C:\Users\...\...\..."         # insert path for directory containing IT texts
-DE_path = r"C:\Users\...\...\..."         # insert path for directory containing DE texts
+IT_path = r""         # insert path for directory containing IT texts
+DE_path = r""         # insert path for directory containing DE texts
 
 IT_texts = os.listdir(IT_path)
 DE_texts = os.listdir(DE_path)
 
 ''' pattern to extract IDs from filenames. Filenames are in the following form: "STPLC_IT_1234", "STPLC_DE_1234" '''
-pattern = re.compile(r"STPLC_(IT|DE)_(\d{4})\.txt")
+pattern = re.compile(r"STPLC_(it|de)_(\d{4})\.txt")
 
 it_set = set()                                                  # building a set of IDs of Italian texts
 for text in IT_texts:
