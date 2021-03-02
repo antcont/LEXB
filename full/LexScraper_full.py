@@ -39,7 +39,7 @@ from xml.sax.saxutils import escape, unescape, quoteattr
 
 #url_list = r"C:\Users\anton\Dropbox\Eurac_tesi\STPLC\test_url_it.txt"
 #url_list = r"C:\Users\anton\Dropbox\Eurac_tesi\custom_MT\de_URLs_stplc_full.txt"
-url_list = r"C:\Users\anton\Dropbox\Eurac_tesi\custom_MT\it_URLs_stplc_full.txt"
+url_list = r"C:\Users\anton\Dropbox\Eurac_tesi\custom_MT\full\it_URLs_stplc_full.txt"
 export_path = r"C:\Users\anton\Desktop\prove_download_scraper\stplc_full_25.02\it"
 language = "it"             # "it" or "de
 
@@ -270,8 +270,7 @@ def scraper(url_list, lang, export_folder):
             continue
         else:
             #print(text_tag)
-            text = "\n".join([text_tag, title, title_type, body, "</text>"])
-            text = escape(unescape(body))                   #escaping .xml characters
+            text = "\n".join([text_tag, title, title_type, escape(unescape(body)), "</text>"])
             newfile_path = export_folder + "\STPLC_%s_%s.txt" % (lang, str(id).zfill(4))            # building filename as "STPLC_it_0000"
             with open(newfile_path, "w", encoding="utf-8", newline="\n") as file:
                 file.write(text)
