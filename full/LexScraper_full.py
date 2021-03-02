@@ -37,8 +37,7 @@ from langdetect import detect
 import langid
 from xml.sax.saxutils import escape, unescape, quoteattr
 
-#url_list = r"C:\Users\anton\Dropbox\Eurac_tesi\STPLC\test_url_it.txt"
-#url_list = r"C:\Users\anton\Dropbox\Eurac_tesi\custom_MT\de_URLs_stplc_full.txt"
+#url_list = r"C:\Users\anton\Dropbox\Eurac_tesi\custom_MT\full\de_URLs_stplc_full.txt"
 url_list = r"C:\Users\anton\Dropbox\Eurac_tesi\custom_MT\full\it_URLs_stplc_full.txt"
 export_path = r"C:\Users\anton\Desktop\prove_download_scraper\stplc_full_25.02\it"
 language = "it"             # "it" or "de
@@ -265,7 +264,7 @@ def scraper(url_list, lang, export_folder):
         discarding text if: 
         wrong detected language; text body absent; text body shorter than 6 lines (abrogated); all metadata "NA" (empty).
         '''
-        if lang not in detected_lang or not body or body_len < 8 or text_tag == '<text title="NA" title_type="NA" type="NA" drafting_date="NA" year="NA" decade="NA" macro_topic="NA" micro_topic="NA">':
+        if lang not in detected_lang or not body or text_tag == '<text title="NA" title_type="NA" type="NA" drafting_date="NA" year="NA" decade="NA" macro_topic="NA" micro_topic="NA">':
             df_.loc[len(df_.index)] = ["ERROR! No text downloaded: STPLC_%s_%s.txt" % (lang, str(id).zfill(4)), url, title_type, "ERROR: empty"]
             continue
         else:
