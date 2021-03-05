@@ -241,7 +241,7 @@ def get_body(soup):
 
 def scraper(url_list, lang, export_folder):
     '''
-    "Alexa, play "(sc)rape me" by Nirvana.
+    "Alexa, play '(sc)rape me' by Nirvana."
     '''
     text_type_set = set()
     columns = ["file", "URL", "title", "download"]
@@ -268,7 +268,6 @@ def scraper(url_list, lang, export_folder):
             df_.loc[len(df_.index)] = ["ERROR! No text downloaded: STPLC_%s_%s.txt" % (lang, str(id).zfill(4)), url, title_type, "ERROR: empty"]
             continue
         else:
-            #print(text_tag)
             text = "\n".join([text_tag, title, title_type, escape(unescape(body)), "</text>"])
             newfile_path = export_folder + "\STPLC_%s_%s.txt" % (lang, str(id).zfill(4))            # building filename as "STPLC_it_0000"
             with open(newfile_path, "w", encoding="utf-8", newline="\n") as file:
