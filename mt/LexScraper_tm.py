@@ -15,7 +15,7 @@ from urllib3.util import Retry
 import re
 import pandas as pd
 from langdetect import detect
-from LexScraper_full import get_soup, get_title, get_title_type, get_body
+from full.LexScraper_full import get_soup, get_title, get_title_type, get_body
 
 retries = Retry(connect=5, read=2, redirect=5)                     # trying to reconnect to the website in case of error
 http = urllib3.PoolManager(retries=retries)
@@ -37,8 +37,8 @@ def scraper_tm(url_list, lang, export_folder):
             print("ok")
             text = "\n".join([title, title_type, body])
             newfile_path = export_folder + "\STPLC_%s_%s.txt" % (lang, str(id).zfill(4))  # building filename as "STPLC_it_0000"
-            #with open(newfile_path, "w", encoding="utf-8", newline="\n") as file:
-                #file.write(text)
+            with open(newfile_path, "w", encoding="utf-8", newline="\n") as file:
+                file.write(text)
 
 
 with open(url_list, "r") as f:        # URL list is a .txt file with one URL per line
