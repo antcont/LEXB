@@ -1,5 +1,4 @@
 # LEXB corpus
-## South Tyrol Parallel Legal Corpus / LexCorpus
 
 The LEXB corpus is a bilingual (Italian-German) collection of South Tyrolean legislation.
 
