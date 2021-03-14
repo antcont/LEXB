@@ -1,4 +1,4 @@
-# custom_MT
+# mt
 ## Python scripts for corpus scraping and cleaning
 
 - `parallel_URLs_collection.py`:		collecting a parallel list of URLs of Italian and German laws from the LexBrowser database for subsequent text 
