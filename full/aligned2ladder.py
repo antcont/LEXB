@@ -1,5 +1,5 @@
 '''
-aligned2mapping_file.py
+aligned2ladder.py
 adapted by antcont
 
 Based on calign.py, fixgaps.py and compressrng.py by Milos Jakubicek 2012
@@ -17,7 +17,9 @@ import re
 
 
 alignment_file = r"C:\Users\anton\Documents\Documenti importanti\SSLMIT FORLI M.A. SPECIALIZED TRANSLATION 2019-2021\tesi\CORPUS\stplc_full\corpus\corpus XML\LexB.it.de.xml"
-output_mapping_file = r"C:\Users\anton\Documents\Documenti importanti\SSLMIT FORLI M.A. SPECIALIZED TRANSLATION 2019-2021\tesi\CORPUS\stplc_full\corpus\corpus XML\prova_lexb_de-it_nocomp.txt"
+output_mapping_file_st = r"C:\Users\anton\Documents\Documenti importanti\SSLMIT FORLI M.A. SPECIALIZED TRANSLATION 2019-2021\tesi\CORPUS\stplc_full\corpus\corpus XML\LexB_ladder_de-it.txt"    # target to source (e.g. if alignment_file is it-de, this will be de-it)
+output_mapping_file_ts = r"C:\Users\anton\Documents\Documenti importanti\SSLMIT FORLI M.A. SPECIALIZED TRANSLATION 2019-2021\tesi\CORPUS\stplc_full\corpus\corpus XML\LexB_ladder_it-de.txt"    # source to target (e.g. if alignment_file is it-de, this will be it-de)
+
 
 with open(alignment_file, "r", encoding="utf-8") as map:
     map_file = map.read().splitlines()
@@ -198,7 +200,19 @@ print(len(alignment_list))
 print(len(alignment_list_fixedgaps))
 print(len(final))
 
-with open(output_mapping_file, "w", encoding="utf-8") as finalmap:
-    finalmap.write("".join(alignment_list))   # joining alignment_list I am skipping both compressing and fixing gaps
+
+# writing source-target mapping file
+with open(output_mapping_file_st, "w", encoding="utf-8") as finalmap:
+    finalmap.write("".join(alignment_list))   # by joining alignment_list I am skipping both compressing and fixing gaps
+
+# inverting and writing target-source mapping file
+target2source = []
+for line in alignment_list:     # same as above (change to "alignment_list_fixedgaps" or "final" if needed)
+    reg = re.search(r"(.+)\t(.+)", line)
+    target2source.append("%s\t%s" % (reg.group(2), reg.group(1)))
+
+with open(output_mapping_file_ts, "w", encoding="utf-8") as out:
+    out.write("\n".join(target2source))
+
 
 print("Done")
