@@ -12,16 +12,24 @@ For the "raw" alignment file (no compressing, no fixing gaps), when writing the 
 For alignment definition file with gap fixing, join "alignment_list_fixedgaps"
 For compressed and gap-fixed alignment definition file, join "final".
 '''
-
+import argparse
 import re
 
+#  define cmd arguments
+parser = argparse.ArgumentParser(description="Script for converting Intertext alignment file to NoSkE/Manatee"
+                                             " alignment mapping file in ladder format.")
+parser.add_argument("alignmentFile", help="the corpus in .xml format to be dehyphenated")
+parser.add_argument("sourceLang", help="the language code of the source (as of Intertext alignment filename)")
+parser.add_argument("targetLang", help="the language code of the target (as of Intertext alignment filename)")
+args = parser.parse_args()
 
-alignment_file = r"C:\Users\anton\Documents\Documenti importanti\SSLMIT FORLI M.A. SPECIALIZED TRANSLATION 2019-2021\tesi\CORPUS\stplc_full\corpus\corpus XML\LexB.it.de.xml"
-output_mapping_file_st = r"C:\Users\anton\Documents\Documenti importanti\SSLMIT FORLI M.A. SPECIALIZED TRANSLATION 2019-2021\tesi\CORPUS\stplc_full\corpus\corpus XML\LexB_ladder_de-it.txt"    # target to source (e.g. if alignment_file is it-de, this will be de-it)
-output_mapping_file_ts = r"C:\Users\anton\Documents\Documenti importanti\SSLMIT FORLI M.A. SPECIALIZED TRANSLATION 2019-2021\tesi\CORPUS\stplc_full\corpus\corpus XML\LexB_ladder_it-de.txt"    # source to target (e.g. if alignment_file is it-de, this will be it-de)
+#  processing arguments
+alignmentFile = args.alignmentFile
+sourceLang = args.sourceLang
+targetLang = args.targetLang
 
 
-with open(alignment_file, "r", encoding="utf-8") as map:
+with open(alignmentFile, "r", encoding="utf-8") as map:
     map_file = map.read().splitlines()
 
 
@@ -94,8 +102,8 @@ for id_int, id_s in enumerate(list_source):
 for id_int, id_s in enumerate(list_target):
     dict_target[id_s] = str(id_int)
 
-print(len(dict_source))
-print(len(dict_target))
+#print(len(dict_source))
+#print(len(dict_target))
 
 # substituting string values with ids (from dictionary) and creating final alignment definition file in ladder format
 alignment_list = []
@@ -195,24 +203,27 @@ if beg_l1:
 elif beg_l2:
     print_range(beg_l2, end_l2, False, final)
 
-
+#  for testing purposes only
+'''
 print(len(alignment_list))
 print(len(alignment_list_fixedgaps))
 print(len(final))
+'''
 
-
-# writing source-target mapping file
-with open(output_mapping_file_st, "w", encoding="utf-8") as finalmap:
+# writing target-source mapping file (target-source first because Intertext alignment file is inverted)
+align_ts = "alignment_ladder_%s-%s.txt" % (targetLang, sourceLang)
+with open(align_ts, "w", encoding="utf-8") as finalmap:
     finalmap.write("".join(alignment_list))   # by joining alignment_list I am skipping both compressing and fixing gaps
 
-# inverting and writing target-source mapping file
-target2source = []
+# inverting and writing source-target mapping file
+source2target = []
 for line in alignment_list:     # same as above (change to "alignment_list_fixedgaps" or "final" if needed)
     reg = re.search(r"(.+)\t(.+)", line)
-    target2source.append("%s\t%s" % (reg.group(2), reg.group(1)))
+    source2target.append("%s\t%s" % (reg.group(2), reg.group(1)))
 
-with open(output_mapping_file_ts, "w", encoding="utf-8") as out:
-    out.write("\n".join(target2source))
+align_st = "alignment_ladder_%s-%s.txt" % (sourceLang, targetLang)
+with open(align_st, "w", encoding="utf-8") as out:
+    out.write("\n".join(source2target))
 
 
 print("Done")

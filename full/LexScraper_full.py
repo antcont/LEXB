@@ -1,33 +1,9 @@
 '''
-todo: rifare scraping perche ho dimenticato di aggiungere titoli al txt (correggere prima lo scraping) e per rifare report
-
-
-todo  Importante: correggere manualmente Beschluss des Sonderbetriebes für die Feuerwehr und Zivilschutzdienste e Deliberazione Azienda speciale servizi antincendi e per la protezione civile
-
-- FARE SCRAPER UNICO ANCHE PER STPLC_MT
-
-
-- oppure cambia in title e title_arg (argument) ?? boh no
-
-
-todo: come controllare che sto effettivamente normalizzando tutti i type?? e valutare come sono i testi tedeschi poi
-
-todo: mancanti da normalizzare: (se sono troppi, lasciare in IT)
-
-- trovare il modo di dirgli: se non è fra quelli standardizzati del dizionario, imposta come "NA"
-- Decreto del Presidente della Provincia18 == è un errore in mappapercorsosito, quindi non risolvibile. solo correggibile eliminando il numero
-- Decreto
-- Testo unico del
-- Legge provinciale del
-- Legge provinciale vom
-- Decreto del Presidente della Provincia26
--
-
-
-altro:
-DE {'Legge Provinciale / Landesgesetz', 'Decreto del Presidente della Repubblica / Dekret des Präsidenten der Republik', 'Testo unico / Einheitstext', 'Decreto del Direttore di Ripartizione / Dekret des Abteilungsdirektors', 'Decreto del Presidente della Provincia / Dekret des Landeshauptmanns', "Decreto dell'Assessore per l'agricoltura e le foreste / Dekret des Assessors für Landwirtschaft und Forstwesen", 'Verfassung der Republik Italien', 'Delibera della Giunta Provinciale / Beschluss der Landesregierung', 'Beschluss des Sonderbetriebes für die Feuerwehr und Zivilschutzdienste', 'Legge statale / Staatsgesetz', 'Vertrag', 'Decreto / Dekret', 'PARISER VERTRAG', 'Legge costituzionale / Verfassungsgesetz', "Decreto del Direttore dell'Agenzia per la protezione civile / Dekret des Direktors der Agentur für Bevölkerungsschutz", 'Decreto legislativo / Gesetzesvertretendes Dekret', 'Contratto collettivo / Kollektivvertrag', 'Contratto collettivo intercompartimentale / Bereichsübergreifender Kollektivvertrag', 'Circolare / Rundschreiben', 'Contratto di comparto / Bereichsabkommen', 'NA'}
+Arguments are a txt file with a newline-separated list of URLs to be scraped and the language code.
 '''
 
+import argparse
+import os
 import urllib3
 from bs4 import BeautifulSoup
 from urllib3.util import Retry
@@ -37,19 +13,29 @@ from langdetect import detect
 import langid
 from xml.sax.saxutils import escape, unescape, quoteattr
 
-#url_list = r"C:\Users\anton\Dropbox\Eurac_tesi\custom_MT\full\de_URLs_stplc_full.txt"
-url_list = r"C:\Users\anton\Dropbox\Eurac_tesi\custom_MT\full\it_URLs_stplc_full.txt"
-export_path = r"C:\Users\anton\Desktop\prove_download_scraper\stplc_full_25.02\it"
-language = "it"             # "it" or "de
+
+#  define cmd arguments
+parser = argparse.ArgumentParser(description="A scraper for texts from the LexBrowser.\nStructural and contextual information are annotated.")
+parser.add_argument("URL_list", help="a newline-separated txt file of URLs to be scraped")
+parser.add_argument("language", help="the language code of the texts (it|de)")
+args = parser.parse_args()
 
 
+#  processing arguments
+url_list = args.URL_list
+language = args.language
 
+
+#  building up all the functions
 def get_soup(url):
+    '''
     retries = Retry(connect=10, read=10, redirect=10)  # trying to reconnect to the website in case of error
     http = urllib3.PoolManager(retries=retries)
     html = http.request('GET', url).data
     soup = BeautifulSoup(html, features="lxml")
-    #soup = BeautifulSoup(((urllib3.PoolManager(retries=(Retry(connect=10, read=10, redirect=10)))).request('GET', url).data), features="lxml")    # one liner
+    '''
+    soup = BeautifulSoup(((urllib3.PoolManager(retries=(Retry(connect=10, read=10, redirect=10))))
+                          .request('GET', url).data), features="lxml")
     return soup
 
 
@@ -63,7 +49,8 @@ def get_title(soup):
     if title_ is not None:
         title = escape(unescape(title_.get_text(strip=True)))
         title = title.replace("\"", "&quot;")
-        remove_note = re.search("^(.+)(?<=\p{L}|\))\d\)$", title)  # removing notes from the end if preceded by letter and nospace
+        # removing notes from the end if preceded by letter and nospace
+        remove_note = re.search("^(.+)(?<=\p{L}|\))\d\)$", title)
         if remove_note:
             title = remove_note.group(1)
     return title
@@ -83,7 +70,8 @@ def get_title_type(soup):
     if titletype_ is None:
         title_type = "NA"
     if titletype_ is not None:
-        titletype = escape(unescape(titletype_.get_text(strip=True)))  # escaping XML characters & < > and trimming whitespaces
+        # escaping XML special characters (& < > ") and trimming whitespaces
+        titletype = escape(unescape(titletype_.get_text(strip=True)))
         title_type = titletype.replace("\"", "&quot;")
     return title_type
 
@@ -96,11 +84,13 @@ def get_date(title_type):
                      "Juli": "07", "August": "08", "September": "09", "Oktober": 10, "November": 11, "Dezember": 12}
     date_match = re.search(r"(\d\d?)\.?°? ?([Gg]ennaio|[Ff]ebbraio|[Mm]arzo|[Aa]prile|[Mm]aggio|[Gg]iugno|[Ll]uglio|[Aa]gosto|[Ss]ettembre|[Oo]ttobre|[Nn]ovembre|[Dd]icembre|[Jj]änner|[Jj]anuar|[Ff]ebruar|[Mm]ärz|[Aa]pril|[Mm]ai|[Jj]uni|[Jj]uli|[Aa]ugust|[Ss]eptember|[Oo]ktober|[Nn]ovember|[Dd]ezember) (\d{4})", title_type)
     date_match2 = re.search(r"(Delibera)  ? ?N\. \d{1,6}  ?(del|vom)  ?(\d\d?)\.(\d\d)\.(\d{4})$", title_type)
+
     if date_match2:
         day = date_match2.group(3)
         if len(day) == 1:
             day = "0" + day
         drafting_date = "%s/%s/%s" % (day, date_match2.group(4), date_match2.group(5))
+
     elif date_match:
         day = date_match.group(1)
         if len(day) == 1:
@@ -111,8 +101,10 @@ def get_date(title_type):
             if month.lower() == m.lower():
                 month_number = month_convert[m]
         drafting_date = "%s/%s/%s" % (day, month_number, year)
+
     else:
        drafting_date = "NA"
+
     return drafting_date
 
 
@@ -120,7 +112,8 @@ def get_text_type(title_type):
     type_search = re.search(
         r"^([\p{L} ']+) ?(del|vom)? ?(\d\d?°?\.? ([Gg]ennaio|[Ff]ebbraio|[Mm]arzo|[Aa]prile|[Mm]aggio|[Gg]iugno|[Ll]uglio|[Aa]gosto|[Ss]ettembre|[Oo]ttobre|[Nn]ovembre|[Dd]icembre|[Jj]änner|[Jj]anuar|[Ff]ebruar|[Mm]ärz|[Aa]pril|[Mm]ai|[Jj]uni|[Jj]uli|[Aa]ugust|[Ss]eptember|[Oo]ktober|[Nn]ovember|[Dd]ezember))",
         title_type)
-    type_search2 = re.search(r"(Delibera|Beschluss)  ? ?Nr?\. ? \d°?\d{0,6}  ?(del|vom) ? (\d\d?\.\d\d\.\d{4})$", title_type)
+    type_search2 = re.search(r"(Delibera|Beschluss)  ? ?Nr?\. ? \d°?\d{0,6}  ?(del|vom) ? (\d\d?\.\d\d\.\d{4})$",
+                             title_type)
     type_search3 = re.search(r"^([\p{L} ]+)\d\d?$", title_type)
     if type_search:
         text_type = type_search.group(1).strip()
@@ -130,9 +123,11 @@ def get_text_type(title_type):
         text_type = type_search3.group(1).strip()
     else:
         text_type = title_type
-    type_correct = re.search(r"^([\p{L} ]+) ?(del|vom)$", text_type)         # exceptions for "Decreto del Presidente della Provincia31" and "Testo unico del"
+    # exceptions for "Decreto del Presidente della Provincia31" and "Testo unico del"
+    type_correct = re.search(r"^([\p{L} ]+) ?(del|vom)$", text_type)
     if type_correct:
         text_type = type_correct.group(1).strip()
+
     temp2type = {
         "Delibera": "Delibera della Giunta Provinciale / Beschluss der Landesregierung",
         "Deliberazione della Giunta Provinciale": "Delibera della Giunta Provinciale / Beschluss der Landesregierung",
@@ -184,13 +179,16 @@ def get_text_type(title_type):
         "Testo unico": "Testo unico / Einheitstext",
         "Einheitstext": "Testo unico / Einheitstext"
     }
+
     for temp in temp2type.keys():
         if temp.lower() == text_type.lower():
             text_type = temp2type[temp]
+
     if not any(text_type.lower() == val.lower() for val in temp2type.values()):
         print("Exception found. Handle it.")
         print(text_type)
         pass
+
     return text_type
 
 
@@ -239,16 +237,25 @@ def get_body(soup):
     return body, detected_lang, body_len
 
 
-def scraper(url_list, lang, export_folder):
+def scraper(url_list, lang):
     '''
     "Alexa, play '(sc)rape me' by Nirvana."
     '''
     text_type_set = set()
     columns = ["file", "URL", "title", "download"]
     df_ = pd.DataFrame(columns=columns)
+
+    # creating a new directory for the scraped texts
+    newdir = "./" + language
+    try:
+        os.mkdir(newdir)
+    except:
+        print("Directory %s already existing" % newdir)
+        exit()
+    else:
+        print("Successfully created the directory %s " % newdir)
+
     for id, url in enumerate(url_list):
-        #if id < 2580:
-            #continue
         soup = get_soup(url)
         title = get_title(soup)
         title_type = get_title_type(soup)
@@ -258,32 +265,33 @@ def scraper(url_list, lang, export_folder):
         macro_topic, micro_topic = get_topic(soup)
         year, decade = get_year_decade(drafting_date)
         body, detected_lang, body_len = get_body(soup)
-        text_tag = '<text title="%s" title_type="%s" type="%s" drafting_date="%s" year="%s" decade="%s" macro_topic="%s" micro_topic="%s">' \
+        text_tag = '<text title="%s" title_type="%s" type="%s" drafting_date="%s" year="%s" decade="%s"' \
+                   ' macro_topic="%s" micro_topic="%s">' \
                    % (title, title_type, text_type, drafting_date, year, decade, macro_topic, micro_topic)
         ''' 
         discarding text if: 
-        wrong detected language; text body absent; text body shorter than 6 lines (abrogated); all metadata "NA" (empty).
+        wrong detected language; text body absent; text body shorter than 6 lines (abrogated); all metadata "NA" (empty)
         '''
         if lang not in detected_lang or not body or text_tag == '<text title="NA" title_type="NA" type="NA" drafting_date="NA" year="NA" decade="NA" macro_topic="NA" micro_topic="NA">':
             df_.loc[len(df_.index)] = ["ERROR! No text downloaded: STPLC_%s_%s.txt" % (lang, str(id).zfill(4)), url, title_type, "ERROR: empty"]
             continue
+
         else:
             text = "\n".join([text_tag, title, title_type, escape(unescape(body)), "</text>"])
-            newfile_path = export_folder + "\STPLC_%s_%s.txt" % (lang, str(id).zfill(4))            # building filename as "STPLC_it_0000"
-            with open(newfile_path, "w", encoding="utf-8", newline="\n") as file:
+            filepath = newdir + "/STPLC_%s_%s.txt" % (lang, str(id).zfill(4))            # building filename as "STPLC_it_0000"
+            with open(filepath, "w", encoding="utf-8", newline="\n") as file:
                 file.write(text)
-            df_.loc[len(df_.index)] = ["STPLC_%s_%s.txt" % (lang, str(id).zfill(4)), url, title_type, "OK"]  # info on report file #reindent under file.write!
-        print("\r", "%i / %i (%.2f%%)" % (id+1, len(url_list), (id+1)*100/len(url_list)), end="")               #printing progress
-    export_path_report = export_folder + "/report.csv"                  # building filepath for the report file
-    df_.to_csv(export_path_report, sep=";", header=True, index=False)   # export report file as .csv
-    print(text_type_set)
+            df_.loc[len(df_.index)] = ["STPLC_%s_%s.txt" % (lang, str(id).zfill(4)) , url, title_type, "OK"]  # info on report file #reindent under file.write!
+        print("\r", "%i / %i (%.2f%%)" % (id+1, len(url_list), (id+1)*100/len(url_list)), end="")     #printing progress
 
+    df_.to_csv("report.csv", sep=";", header=True, index=False)   # export report file as .csv
+    print(text_type_set)
 
 
 with open(url_list, "r") as f:   # URL list is a .txt file with one URL per line
     URL_list = f.read().splitlines()
 
 if __name__ == "__main__":
-    scraper(URL_list, language, export_path)
+    scraper(URL_list, language)
 
 print("Done.")
