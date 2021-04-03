@@ -14,16 +14,7 @@ import langid
 from xml.sax.saxutils import escape, unescape, quoteattr
 
 
-#  define cmd arguments
-parser = argparse.ArgumentParser(description="A scraper for texts from the LexBrowser.\nStructural and contextual information are annotated.")
-parser.add_argument("URL_list", help="a newline-separated txt file of URLs to be scraped")
-parser.add_argument("language", help="the language code of the texts (it|de)")
-args = parser.parse_args()
 
-
-#  processing arguments
-url_list = args.URL_list
-language = args.language
 
 
 #  building up all the functions
@@ -288,10 +279,23 @@ def scraper(url_list, lang):
     print(text_type_set)
 
 
-with open(url_list, "r") as f:   # URL list is a .txt file with one URL per line
-    URL_list = f.read().splitlines()
+
 
 if __name__ == "__main__":
+    #  define cmd arguments
+    parser = argparse.ArgumentParser(
+        description="A scraper for texts from the LexBrowser.\nStructural and contextual information are annotated.")
+    parser.add_argument("URL_list", help="a newline-separated txt file of URLs to be scraped")
+    parser.add_argument("language", help="the language code of the texts (it|de)")
+    args = parser.parse_args()
+
+    #  processing arguments
+    url_list = args.URL_list
+    language = args.language
+
+    with open(url_list, "r") as f:  # URL list is a .txt file with one URL per line
+        URL_list = f.read().splitlines()
+
     scraper(URL_list, language)
 
-print("Done.")
+    print("Done.")
