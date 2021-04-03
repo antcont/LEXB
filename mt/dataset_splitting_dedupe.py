@@ -7,15 +7,25 @@ training set and keeping them from being selected for test set.
 '''
 import random
 import regex
+import argparse
 
-corpus_txt = r"C:\Users\anton\Dropbox\Eurac_tesi\custom_MT\corpus\stplc_08022021_cleaned_1.txt"
+
+#  define cmd arguments
+parser = argparse.ArgumentParser(description="Script for dataset splitting (training set and test set) with advanced"
+                                             "deduplication process to avoid almost-duplicates in the test set.")
+parser.add_argument("dataset", help="the whole dataset in tab-separated txt format")
+args = parser.parse_args()
+
+#  processing arguments
+total_dataset = args.dataset
+
 
 with open(corpus_txt, "r", encoding="utf-8") as corp:
     corpus = corp.read().splitlines()
 
 print("Segments of total dataset: ", len(corpus))
 
-# deduplicating (Pinnis 2018)
+# deduplicating (adapted from Pinnis 2018)
 print("Deduplicating TUs...")
 tu_dict = {}        #tu_dict must be in the form of -> original string: normalized string
 for line in corpus:
