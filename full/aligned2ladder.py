@@ -1,5 +1,5 @@
 '''
-aligned2ladder.py
+aligned2ladder_2.0.py
 adapted by antcont
 
 Based on calign.py, fixgaps.py and compressrng.py by Milos Jakubicek 2012
@@ -11,22 +11,29 @@ Generating an alignment definition file from parallel corpora (both with numeric
 For the "raw" alignment file (no compressing, no fixing gaps), when writing the output file join "alignment_list"
 For alignment definition file with gap fixing, join "alignment_list_fixedgaps"
 For compressed and gap-fixed alignment definition file, join "final".
+
+Version 2.0: s.id attributes are extracted from the .vert corpora rather than the Intertext alignment file to avoid
+potential problems.
 '''
 import argparse
 import re
+from pathlib import Path
 
 #  define cmd arguments
 parser = argparse.ArgumentParser(description="Script for converting Intertext alignment file to NoSkE/Manatee"
-                                             " alignment mapping file in ladder format.")
-parser.add_argument("alignmentFile", help="the corpus in .xml format to be dehyphenated")
-parser.add_argument("sourceLang", help="the language code of the source (as of Intertext alignment filename)")
-parser.add_argument("targetLang", help="the language code of the target (as of Intertext alignment filename)")
+                                             " alignment mapping file in ladder format.\ns.id attributes are extracted"
+                                             " from the .vert corpora rather than the Intertext alignment file"
+                                             " to avoid potential problems.")
+parser.add_argument("sourceCorp", help="the source corpus in vert format")
+parser.add_argument("targetCorp", help="the target corpus in vert format")
+parser.add_argument("alignmentFile", help="the xml alignment file from Intertext")
 args = parser.parse_args()
 
 #  processing arguments
+sourceCorp = args.sourceCorp
+targetCorp = args.targetCorp
 alignmentFile = args.alignmentFile
-sourceLang = args.sourceLang
-targetLang = args.targetLang
+
 
 
 with open(alignmentFile, "r", encoding="utf-8") as map:
@@ -65,41 +72,40 @@ def tr_line(aligned, line_nr):
 
 # NB: here and below I'm calling source the attribute values appearing BEFORE the semicolon,
 # even if it is actually not the source in the Intertext mapping file
-list_source = []
-list_target = []
+# The actual "inversion" between source and target is handled when generating the final mapping files
 
-for line_nr, line in enumerate(map_file):
-    line_m = re.match(r".*xtargets=(\"|')([^\1]+?)\1.*", line)
-    if not line_m:
-        continue
-    aligned = line_m.group(2).split(";")
-    if len(aligned) > 2:
-        print("Skipping invalid mapping on line %d\n" % line_nr + 1)
-        continue
-    if not aligned[0]:
-        pass
-    elif " " not in aligned[0] and aligned[0] != None:   # if only 1 source segment
-        list_source.append(aligned[0])
-    else: # if more than one source segment
-        for seg in aligned[0].split():
-            if seg != None and aligned[0] not in list_source:
-                list_source.append(seg)
-    if not aligned[1]:
-        pass
-    elif " " not in aligned[1] and aligned[1] != None:  # if only 1 target segment
-        list_target.append(aligned[1])
-    else:   # if more than one target segment
-        for seg in aligned[1].split():
-            if seg != None and aligned[1] not in list_target:
-                list_target.append(seg)
 
 # converting (string)id lists to dictionaries by assigning to each an index with enumerate()
+#  first, I parse the vert corpora in order to get all the senctence ids
+with open(sourceCorp, "r", encoding="utf-8") as source:
+    sourceCorpus = source.read().splitlines()
+
+idsSource = []
+for line in sourceCorpus:
+    if line.startswith("<s id"):
+        searchId = re.search(r'id="(.+)"', line)
+        idsSource.append(searchId.group(1))
+
+
+#  same for the target vert corpus
+with open(targetCorp, "r", encoding="utf-8") as target:
+    targetCorpus = target.read().splitlines()
+
+idsTarget = []
+for line in targetCorpus:
+    if line.startswith("<s id"):
+        searchId = re.search(r'id="(.+)"', line)
+        idsTarget.append(searchId.group(1))
+
+print("All s.id attributes extracted.")
+
+#  adding s.id items to a dictionary and assigning an index with enumerate()
 dict_source = {}
 dict_target = {}
 
-for id_int, id_s in enumerate(list_source):
+for id_int, id_s in enumerate(idsSource):
     dict_source[id_s] = str(id_int)
-for id_int, id_s in enumerate(list_target):
+for id_int, id_s in enumerate(idsTarget):
     dict_target[id_s] = str(id_int)
 
 #print(len(dict_source))
@@ -109,24 +115,27 @@ for id_int, id_s in enumerate(list_target):
 alignment_list = []
 for line_nr, line in enumerate(map_file):
     line_m = re.match(r".*xtargets=(\"|')([^\1]+?)\1.*", line)
-    if not line_m:
-        continue
-    aligned = line_m.group(2).split(";")
-    if not aligned[0]:            # taking care of 0:n and n:0 alignments
-        l1 = tr_line(aligned[0], line_nr)
-    elif " " not in aligned[0] and aligned[0] != None:
-        l1 = tr_line(dict_source[aligned[0]], line_nr)  # changing id from string to integer and processing with tr_line
-    else:
-        l1 = tr_line(" ".join([str(dict_source[seg_id]) for seg_id in aligned[0].split()]), line_nr)
-    if not aligned[1]:
-        l2 = tr_line(aligned[1], line_nr)
-    elif " " not in aligned[1] and aligned[1] != None:
-        l2 = tr_line(dict_target[aligned[1]], line_nr)          # changing id from string to integer
-    else:
-        l2 = tr_line(" ".join([str(dict_target[seg_id]) for seg_id in aligned[1].split()]), line_nr)
-    if l1 != None and l2 != None:
-        alignment_list.append("%s\t%s\n" % (l1, l2))
-
+    try:
+        if not line_m:
+            continue
+        aligned = line_m.group(2).split(";")
+        if not aligned[0]:            # taking care of 0:n and n:0 alignments
+            l1 = tr_line(aligned[0], line_nr)
+        elif " " not in aligned[0] and aligned[0] != None:
+            l1 = tr_line(dict_target[aligned[0]], line_nr)  # changing id from string to integer and processing with tr_line
+        else:
+            l1 = tr_line(" ".join([str(dict_target[seg_id]) for seg_id in aligned[0].split()]), line_nr)
+        if not aligned[1]:
+            l2 = tr_line(aligned[1], line_nr)
+        elif " " not in aligned[1] and aligned[1] != None:
+            l2 = tr_line(dict_source[aligned[1]], line_nr)          # changing id from string to integer
+        else:
+            l2 = tr_line(" ".join([str(dict_source[seg_id]) for seg_id in aligned[1].split()]), line_nr)
+        if l1 != None and l2 != None:
+            alignment_list.append("%s\t%s\n" % (l1, l2))
+    except:
+        print(line_nr)
+        raise
 
 # fixing gaps
 alignment_list_fixedgaps = []
@@ -211,19 +220,21 @@ print(len(final))
 '''
 
 # writing target-source mapping file (target-source first because Intertext alignment file is inverted)
-align_ts = "alignment_ladder_%s-%s.txt" % (targetLang, sourceLang)
+sourceName = Path(sourceCorp).stem
+targetName = Path(targetCorp).stem
+align_ts = "%s-%s_aligned.txt" % (targetName, sourceName)
 with open(align_ts, "w", encoding="utf-8") as finalmap:
-    finalmap.write("".join(alignment_list))   # by joining alignment_list I am skipping both compressing and fixing gaps
+    finalmap.write("".join(alignment_list))   # by joining alignment_list I am skipping both compressing and gap-fixing
 
 # inverting and writing source-target mapping file
 source2target = []
 for line in alignment_list:     # same as above (change to "alignment_list_fixedgaps" or "final" if needed)
-    reg = re.search(r"(.+)\t(.+)", line)
-    source2target.append("%s\t%s" % (reg.group(2), reg.group(1)))
+    reg = re.search(r"(.+)\t(.+)\n", line)
+    source2target.append("%s\t%s\n" % (reg.group(2), reg.group(1)))
 
-align_st = "alignment_ladder_%s-%s.txt" % (sourceLang, targetLang)
+align_st = "%s-%s_aligned.txt" % (sourceName, targetName)
 with open(align_st, "w", encoding="utf-8") as out:
-    out.write("\n".join(source2target))
+    out.write("".join(source2target))
 
 
-print("Done")
+print("Alignment mapping files in ladder format have been created:\n%s\n%s" % (align_st, align_ts))
