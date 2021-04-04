@@ -1,6 +1,6 @@
 '''
-Dividing dataset into training set and test set. Test set contains 2000 proper (starting with uppercase letter and ending with period, colon or semicolon)
-sentences with 10-20 words length (extend to 24 words?).
+Dividing dataset into training set and test set. Test set contains 2000 proper (starting with uppercase letter and
+ending with period, colon or semicolon) sentences with 10-20 words length (extend to 24 words?).
 Before selecting the test set, we carry out an advanced deduplication operation (Pinnis 2018), in order to avoid having
 almost-duplicates in training set and test set, but still keeping that potentially useful almost-duplicates in the
 training set and keeping them from being selected for test set.
@@ -20,12 +20,12 @@ args = parser.parse_args()
 total_dataset = args.dataset
 
 
-with open(corpus_txt, "r", encoding="utf-8") as corp:
+with open(total_dataset, "r", encoding="utf-8") as corp:
     corpus = corp.read().splitlines()
 
 print("Segments of total dataset: ", len(corpus))
 
-# deduplicating (adapted from Pinnis 2018)
+#  deduplicating (adapted from Pinnis 2018)
 print("Deduplicating TUs...")
 tu_dict = {}        #tu_dict must be in the form of -> original string: normalized string
 for line in corpus:
@@ -48,7 +48,8 @@ for x, y in tu_dict.items():                    #deduplication
         new_dict[x] = y
     else:
         # if it is an almost-duplicate, put its normalized version in a blacklist set
-        # these almost-duplicates will be removed from the deduplicated dataset, in order for them not to be selected for the test set
+        # these almost-duplicates will be removed from the deduplicated dataset, in order for them not to be selected
+        # for the test set
         blacklist.add(tu_dict[x])
 
 print("Number of almost-duplicates: ", len(blacklist))
@@ -67,15 +68,16 @@ for i in delete:  # removing almost-duplicates from deduplicated dict (from whic
 
 #print(len(new_dict))            # length of deduplicated dataset without almost-dupes
 
-#extracting list of original source-target pairs
+#  extracting list of original source-target pairs
 dedup_list = []
 for x in new_dict.keys():
     dedup_list.append(x)
 
-dataset = list((source, target.strip()) for source, target in (line.split("\t") for line in dedup_list))    #converting dataset to list of tuples (source, target)
+#  converting dataset to list of tuples (source, target)
+dataset = list((source, target.strip()) for source, target in (line.split("\t") for line in dedup_list))
 
-#temporarily putting all segments of length 10-20 words starting with uppercase letter in a separate list
-segments10_20 = list()
+#  temporarily putting all segments of length 10-20 words starting with uppercase letter in a separate list
+segments10_20 = []
 sentence_ending_punct = (".", ";", ":")
 for tu in dataset:
     (source, target) = tu
@@ -91,15 +93,16 @@ for tu in dataset:
         print(target)
         print()
 
-print("Total segments between 10 and 20 tokens, starting with uppercase letter and ending with punctuation (.;:): ", len(segments10_20))
+print("Total segments between 10 and 20 tokens, starting with uppercase letter and ending with punctuation (.;:): ",
+      len(segments10_20))
 
 
-random.shuffle(segments10_20)               # shuffling temporary 10-20 segment list
-test_set_ = list(segments10_20[:2000])      # generating test_set by taking first 2000 random segments from shuffled list
+random.shuffle(segments10_20)              # shuffling temporary 10-20 segment list
+test_set_ = list(segments10_20[:2000])     # generating test_set by taking first 2000 random segments from shuffled list
 
 print("Test set has %i segments." % len(test_set_))
 
-#converting test_set_ to list of strings (not list of tuples)
+#  converting test_set_ to list of strings (not list of tuples)
 test_set = []
 for tu in test_set_:
     test_set.append("\t".join(tu))
@@ -111,14 +114,14 @@ for TU in test_set:
     else:
         print("Error: test set segment not found in the original dataset. Couldn't remove it from the training set.")
 
-#dividing into test set (only Italian sentences) and reference (corresponding German translations)
+#  dividing into test set (only Italian sentences) and reference (corresponding German translations)
 test_set_it = []
 reference = []
 for source, target in (line.split("\t") for line in test_set):
     test_set_it.append(source)
     reference.append(target)
 
-# exporting training set, test set and reference separately to tab-separated txt files
+#  exporting training set, test set and reference separately to tab-separated txt files
 corpus = ["it\tde"] + corpus    # necessary?
 training_set = "\n".join(corpus)
 with open("training-set__.txt", "w", encoding="utf-8") as training:

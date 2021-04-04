@@ -26,6 +26,7 @@ testSet = args.testSet
 reference = args.reference
 
 
+#  reading the files' lines
 with open(trainingSet, "r", encoding="utf-8") as data:
     dataset = data.read().splitlines()
 
@@ -35,17 +36,20 @@ with open(testSet, "r", encoding="utf-8") as test:
 with open(reference, "r", encoding="utf-8") as ref:
     reference = ref.read().splitlines()
 
-# checking test and ref have same length
+
+#  checking test and ref have same length
 if len(test_set) != len(reference):
     print("Error: test and reference have different lengths.")
     exit()
 
+
 bi_test_set = []
-# create bilingual test_set lines with tab-separated sentence pairs
+#  create bilingual test_set lines with tab-separated sentence pairs
 for i in range(len(test_set)):
     bi_test_set.append(test_set[i] + "\t" + reference[i])
 
-# creating new training set
+
+#  creating new training set
 training_set = []
 for TU in dataset:
     if TU not in bi_test_set:
@@ -57,7 +61,8 @@ print(len(dataset))
 print(len(bi_test_set))
 print(len(training_set))
 
-#export new training set
+
+#  export new training set
 filename_old = Path(trainingSet).stem
 filename_new = filename_old + "_validated.txt"
 with open(filename_new, "w", encoding="utf-8") as tr:
