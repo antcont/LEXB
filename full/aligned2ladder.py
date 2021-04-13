@@ -1,6 +1,5 @@
 '''
 aligned2ladder_2.0.py
-adapted by antcont
 
 Based on calign.py, fixgaps.py and compressrng.py by Milos Jakubicek 2012
 (https://www.sketchengine.eu/documentation/mn-mapping-helper-scripts/)
