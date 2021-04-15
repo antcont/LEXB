@@ -1,16 +1,4 @@
 '''
-todo modifiche aprile
-- creare CLI
-- non aprire ogni volta il file; apri una volta sola in "if name == name"
-- creare classe ParallelCorpus
-- inserire condizioni per le quali continui ad eseguirsi finché non sono 0; i counter li posso invece sacrificare ...(?)
-- mettere in un altro script le funzioni che non cambiano il file ma che servono soltanto per contare
-- potrei rinunciare al counter nei segmenti modificati, e tenere il counter per i soli segmenti eliminati
-
-todo: creare README dettagliato per tmx_cleaner.py e metterlo nel README.md principale
-todo: fix total count of noise_cleaning()?
-
-todo: aggiungere inversione se detected lang è de-it? ma in realtà potrebbe indicare comunque un segmento "sbagliato"... rimando a più avanti
 
 A toolkit for cleaning and filtering the parallel corpus in .tmx format (aligned with LF Aligner) and getting clean sentence-sentence
 translation units:
