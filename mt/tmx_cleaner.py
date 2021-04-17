@@ -1,24 +1,4 @@
-'''
 
-A toolkit for cleaning and filtering the parallel corpus in .tmx format (aligned with LF Aligner) and getting clean sentence-sentence
-translation units:
-- remove_untranslated():    removes untranslated TUs, i.e. TUs with identical or almost identical source and target
-- remove_art_and_co():      a first TU cleaning. Noise at sentence beginning is removed ("Art. 1"). TUs with segments
-  containing only non-relevant noise (such as ""Art. 1". "(1)", "1." "1bis.") are removed from the TM.
-- remove_punctuation_numeral_segments(): removes TUs with at least one segment containing only punctuation and/or
-  numbers.
-- noise_cleaning():     further TU cleaning. Noise at sentence beginning is removed: "(1)",
-  "1.", "a.", "1)", "a)","1/bis" (even when preceded by apostrophes or quotation marks), parentheses (when both at the
-  beginning   and the end of segments), noise at the beginning of law titles [such as "g'') "], "" symbol at the end
-  of some segments, "&apos;" is substituted with regular apostrophe, etc.
-- remove_blank_units():     removes TUs containing segments with only whitespaces.
-- remove_whitespaces():     removes leading and trailing whitespaces.
-- select_TUs_with_wrong_lang():     allows manual selection (delete or retain) of TUs containing segments whose detected
-  language does not match the default it/de language.
-- select_TUs_with_different_lenght():    allows manual selection (delete or retain) of TUs whose length difference ratio
-  is higher than a given threshold (indicating possible misalignment).
-- filter_per_token():   removing very long and very short segments (according to token number, which can be set manually)
-'''
 import argparse
 import langid
 import regex
@@ -75,28 +55,20 @@ class ParallelCorpus:
         print("%i TUs with highly similar source-target removed." % counter_similar)
         print()
 
-    def remove_art_and_co(self):
+    def remove_useless(self):
         '''
-        A first segment cleaning stage.
+        Removing sentence pairs where at least one segment is only "Art. 1". "(1)", "1." "1bis."
         '''
         tree = self.tree
-        counter_art_mod = 0
         counter_art_rem = 0
-        regex_mod = regex.compile(r"^(Art\. \d{1,3}/?(bis|ter|quater|quinquies|sexies|septies|octies|novies|decies|undecies|duodecies)?) ?\-? ?(\(?\p{Lu}.+)")       #segments beginning with "Art. 1" or "Art. 1 - "
         regex_rem = regex.compile(r"^(Art\. \d{1,3}|\(\d{1,3}\)|\d{1,3}(bis|ter|quater|quinquies|sexies|septies|octies|novies|decies|undecies|duodecies)?\.)$")        # TUs where at least one segment is only "Art. 1". "(1)", "1." "1bis."
         root = tree.getroot()
         body = root.find("body")
-        print("Cleaning segments and removing useless TUs...")
+        print("Removing some useless sentence pairs...")
         for tu in root.iter("tu"):
             for tuv in tu.iter("tuv"):
                 seg = tuv.find("seg")
                 seg_t = seg.text
-                if regex_mod.search(seg_t):
-                    #print(seg_t)           #for testing purposes
-                    seg.text = regex_mod.search(seg_t).group(3)
-                    #print(seg.text)        #for testing purposes
-                    #print()
-                    counter_art_mod += 1
                 if regex_rem.search(seg_t):
                     try:
                         body.remove(tu)
@@ -104,8 +76,7 @@ class ParallelCorpus:
                     except:                 # error usually occurs because the TU has just been eliminated
                         #print("An error occurred. TU was not removed: %s" % seg_t)
                         pass
-        print("%i segments cleaned from 'Art. 1' at beginning of the sentence" % counter_art_mod)
-        print("%i TUs removed ('Art. ...' or other non-essential segments only)." % counter_art_rem)
+        print("%i useless sentence pairs removed ('Art. ...' or other non-essential segments)." % counter_art_rem)
         print()
 
     def punct_digit_filter(self):
@@ -165,7 +136,7 @@ class ParallelCorpus:
 
     def noise_cleaning(self):
         regex_patterns = [
-            regex.compile(r"^((.+))$"),                         # removing strange "" character at the end of some segments
+            regex.compile(r"^((.+))$"),                         # removing "" character at the end of some segments
             regex.compile(r"^[“„'\"](([^“„'\"”]+))[“'\"”]$"),     # removing quotes if only at the beginning and end of segments
             regex.compile(r"^(\(\d{1,3}\)|•|\.(?!\.)|\-|\*|·) ?(.+)$"),       # removing "(1) ", "• ", ". "* ", "· " and "- " from beginning of segment
             regex.compile(r"^[“„'\"]?(\(?[A-Z]\)|[a-z]?\d\d?[\.\)]|[a-m]{1,2}\.|[a-z]\)) ?(?!Jänner|Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember)([\p{L}“„'\"”].+)[“„'\"]?$"),      #removing "1.", "a.", "1)", "a)", "(1)", "(a)", "a1)", "a1.", "A)", "(A)" (even when preceded by apostrophes or quotation marks)  # added final square parentheses to eliminate eventual final quotation marks; added exceptions for n. and numbers followed by months
@@ -192,6 +163,7 @@ class ParallelCorpus:
             regex.compile(r"^[A-MO-RT-Z]\. ((.+))$"),          #removing "A. " at the beginning of segments (except N. and S. (Numero; San Valentino etc.)
             regex.compile(r"^[A-Z]\d[\):] ((.+))$")             #removing "C3) " and "Q1: " at the beginning of sentences
         ]
+        regex_3 = regex.compile(r"^(Art\. \d{1,3}/?(bis|ter|quater|quinquies|sexies|septies|octies|novies|decies|undecies|duodecies)?) ?\-? ?(\(?\p{Lu}.+)")  # segments beginning with "Art. 1" or "Art. 1 - " (separately because we need group(3) here
         tree = self.tree
         counter_cleaned = 0
         root = tree.getroot()
@@ -200,7 +172,10 @@ class ParallelCorpus:
             for tuv in tu.iter("tuv"):
                 seg = tuv.find("seg")
                 seg_t = seg.text
-                for regex_ in regex_patterns:                                      # iterating over list of regex patterns
+                if regex_3.search(seg_t):       # applying this regex separately in order to group the 3rd backreference group
+                    counter_cleaned += 1
+                    seg.text = regex_3.search(seg_t).group(3)
+                for regex_ in regex_patterns:                                   # iterating over list of regex patterns
                     if regex_.search(seg_t):
                         counter_cleaned += 1
                         #print(seg_t)
@@ -440,25 +415,23 @@ def segment_counter(path, n):
 
 
 if __name__ == '__main__':
-    #  defining cmd arguments
+    #  defining and processing cmd arguments
     parser = argparse.ArgumentParser(description="Script for parallel corpus (tmx) cleaning and filtering")
     parser.add_argument("parallelCorpus", help="the parallel corpus in TMX format")
     args = parser.parse_args()
-    #  processing arguments
     parallelCorpus = args.parallelCorpus
 
-    #  cleaning and filtering operations
+    #  cleaning and filtering operations (order matters)
     corpus = ParallelCorpus(parallelCorpus)
     corpus.remove_untranslated()
     corpus.punct_digit_filter()
     corpus.remove_whitespaces()
-    corpus.remove_art_and_co()
+    corpus.remove_useless()
     corpus.noise_cleaning()
-    corpus.remove_art_and_co()
-    cleanable = True  # refers to noise_cleaning(), becomes False when 0 segments are cleaned by the function
+    cleanable = True  # refers to noise_cleaning(), becomes False when all segments are cleaned by the function
     while cleanable:
         corpus.noise_cleaning()
-    corpus.remove_art_and_co()
+    corpus.remove_useless()
     corpus.noise_cleaning()
     corpus.remove_whitespaces()
     corpus.dehyphenation()
