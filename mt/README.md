@@ -17,7 +17,7 @@ Texts are scraped and aligned using LF Aligner; the corpus in .tmx format is the
 				translation units:
   - `remove_untranslated()`:    filters out TUs with identical or almost identical source and target sentences
   - `punct_digit_filter()`: filters out TUs with at least one segment containing punctuation and/or numbers only.
-  - `noise_cleaning()`:     extensive segment cleaning
+  - `noise_cleaning()`:     extensive cleaning at sentence level
     - removes noise at the beginning of segments: “(1)", "1.", "a.", "1)", "a)", "1.1", "1.1)", “(1/bis)”, "A 1)", "I.A.", "I.1)", "1.1.1", "1.1.1.1", "I.", "I)", "a1)", "a1.", "A)", "(A)", "•", ".", "-"
     - removes noise at the end of segments: ">", " *)", "1)", "(1)"
     - removes other noise: single/double quotes if both at the beginning and the end of segments only; single/double quotes if only at the beginning or the end of segments
