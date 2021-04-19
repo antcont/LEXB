@@ -8,6 +8,7 @@ Metrics for automatic MT evaluation:
 
 from sacrebleu import sentence_bleu, corpus_bleu, corpus_chrf, sentence_chrf
 import pandas as pd
+import regex as re
 
 
 test_set_path = r"C:\Users\anton\Documents\Documenti importanti\SSLMIT FORLI M.A. SPECIALIZED TRANSLATION 2019-2021\tesi\EXPERIMENTS\1 (first official experiment on gt mmt deepl baselines; test set 2000)\test-set_2000_1.txt"
@@ -77,3 +78,12 @@ for i in range(len(source)):
 
 dataframe.to_csv(report_path_export, sep="\t", header=True, index=False)         # export report file as .csv
 
+with open(report_path_export, "r", encoding="utf-8") as report:
+    report_ = report.read()
+
+#  applying regex to localize float with dot  float with comma for Excel
+pattern = re.compile(r'(?<=.+)(\t-?\d\d?\d?)\.(\d{1,3}(\t|\r\n|\n))')
+sub = re.sub(pattern, r"\1,\2", report_)
+sub2 = re.sub(pattern, r"\1,\2", sub)
+with open(report_path_export, "w", encoding="utf-8") as report_out:
+    report_out.write(sub2)
