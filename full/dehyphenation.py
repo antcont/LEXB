@@ -34,8 +34,7 @@ def dehyphenation(path_in):
     segments = root.findall("text/s")
     for segment in segments:
         corpus_.append(segment.text.lower())
-    tokenized = word_tokenize("\n".join(corpus_))
-    vocab = Counter(tokenized)
+    vocab = Counter(word_tokenize("\n".join(corpus_)))   # tokenizing and counting frequencies
     counter_dehyph = 0
     print("Dehyphenating...")
     reg = regex.compile(r"(([A-Za-zöäüÖÄÜ]+)\-([A-Za-zöäüÖÄÜ]+))")
@@ -52,7 +51,7 @@ def dehyphenation(path_in):
                 continue
             if frequency_hyph >= frequency_merged:
                 continue
-            if frequency_hyph == 0:  # to avoid unexplainable ZeroDivisionError in the following elif)
+            if frequency_hyph == 0:  # to avoid unexplainable ZeroDivisionError in the following elif
                 continue
 
             elif (frequency_merged/frequency_hyph) > 10 and (frequency_hyph+frequency_merged) > 40:
