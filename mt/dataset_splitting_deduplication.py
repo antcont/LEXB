@@ -21,12 +21,17 @@ total_dataset = args.dataset
 
 
 with open(total_dataset, "r", encoding="utf-8") as corp:
-    corpus = corp.read().splitlines()
+    corpus__ = corp.read().splitlines()
 
-print("Segments of total dataset: ", len(corpus))
+print("Segments of total dataset before deduplication: ", len(corpus__))
+
+#  simple deduplication
+corpus = set(corpus__)
+
+print("Segments of total dataset after simple deduplication: ", len(corpus))
 
 #  deduplicating (adapted from Pinnis 2018)
-print("Deduplicating TUs...")
+print("Advanced deduplication...")
 tu_dict = {}        #tu_dict must be in the form of -> original string: normalized string
 for line in corpus:
     modified = line.lower().replace(" ", "")  # lowercasing and removing simple whitespaces
