@@ -358,7 +358,8 @@ class ParallelCorpus:
     def length_ratio_filter(self):
         '''
         Discarding sentence pairs whose length ratio is higher than a given threshold.
-        [(longest_sentence + 15) / (shortest_sentence + 15)] > 1.8
+        [(longest_sentence + 15) / (shortest_sentence + 15)] > 1.5
+        based on (https://github.com/modernmt/DataCollection/blob/dev/baseline/filter_hunalign_bitext.py)
         '''
         tree = self.tree
         print("Removing TUs with highly different length ratio between segments...")
@@ -374,7 +375,7 @@ class ParallelCorpus:
             li.sort(reverse=True)
             len_ratio = li[0] / li[1]
 
-            if len_ratio > 1.8:
+            if len_ratio > 1.5:
                 body.remove(tu)
                 #print(len_ratio, "\t", source_segment)
                 #print("\t\t\t", target_segment)
@@ -423,26 +424,7 @@ class ParallelCorpus:
         print("Done")
 
 
-# remove?
-def segment_counter(path, n):
-    '''
-    A simple sentence pair counter according to a given length (tokens).
-    '''
-    nsmap = {"xml": "http://www.w3.org/XML/1998/namespace"}
-    tree = etree.parse(path)
-    root = tree.getroot()
-    counter_total = 0
-    counter_right_length = 0
-    for tu in root.iter("tu"):
-        counter_total += 1
-        source_segment = tu.find("./tuv[@xml:lang='it']/seg", namespaces=nsmap).text
-        target_segment = tu.find("./tuv[@xml:lang='de']/seg", namespaces=nsmap).text
-        source_tokens = source_segment.split()
-        target_tokens = target_segment.split()
-        if len(source_tokens) >= n and len(target_tokens) >= n:
-            counter_right_length += 1
-    print("Total sentence pair count: ", counter_total)
-    print("Sentence pairs with length of %s tokens: %s" % (n, counter_right_length))
+
 
 
 
