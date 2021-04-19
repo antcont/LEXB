@@ -136,6 +136,7 @@ class ParallelCorpus:
 
     def noise_cleaning(self):
         regex_patterns = [
+            regex.compile(r"^(Art\. \d{1,3}/?(?:bis|ter|quater|quinquies|sexies|septies|octies|novies|decies|undecies|duodecies)?) ?\-? ?(\(?\p{Lu}.+)"),  # segments beginning with "Art. 1" or "Art. 1 - "
             regex.compile(r"^((.+))$"),                         # removing "" character at the end of some segments
             regex.compile(r"^[“„'\"](([^“„'\"”]+))[“'\"”]$"),     # removing quotes if only at the beginning and end of segments
             regex.compile(r"^(\(\d{1,3}\)|•|\.(?!\.)|\-|\*|·) ?(.+)$"),       # removing "(1) ", "• ", ". "* ", "· " and "- " from beginning of segment
@@ -163,7 +164,7 @@ class ParallelCorpus:
             regex.compile(r"^[A-MO-RT-Z]\. ((.+))$"),          #removing "A. " at the beginning of segments (except N. and S. (Numero; San Valentino etc.)
             regex.compile(r"^[A-Z]\d[\):] ((.+))$")             #removing "C3) " and "Q1: " at the beginning of sentences
         ]
-        regex_3 = regex.compile(r"^(Art\. \d{1,3}/?(bis|ter|quater|quinquies|sexies|septies|octies|novies|decies|undecies|duodecies)?) ?\-? ?(\(?\p{Lu}.+)")  # segments beginning with "Art. 1" or "Art. 1 - " (separately because we need group(3) here
+        regex_3 = regex.compile(r"^(Art\. \d{1,3}/?(?:bis|ter|quater|quinquies|sexies|septies|octies|novies|decies|undecies|duodecies)?) ?\-? ?(\(?\p{Lu}.+)")  # segments beginning with "Art. 1" or "Art. 1 - "
         tree = self.tree
         counter_cleaned = 0
         root = tree.getroot()
@@ -172,9 +173,6 @@ class ParallelCorpus:
             for tuv in tu.iter("tuv"):
                 seg = tuv.find("seg")
                 seg_t = seg.text
-                if regex_3.search(seg_t):       # applying this regex separately in order to group the 3rd backreference group
-                    counter_cleaned += 1
-                    seg.text = regex_3.search(seg_t).group(3)
                 for regex_ in regex_patterns:                                   # iterating over list of regex patterns
                     if regex_.search(seg_t):
                         counter_cleaned += 1
@@ -200,62 +198,86 @@ class ParallelCorpus:
         corpus_de = []
         nsmap = {"xml": "http://www.w3.org/XML/1998/namespace"}
         root = tree.getroot()
+
         for tu in root.iter("tu"):
             source_segment = tu.find("./tuv[@xml:lang='it']/seg", namespaces=nsmap).text
             target_segment = tu.find("./tuv[@xml:lang='de']/seg", namespaces=nsmap).text
             corpus_it.append(source_segment)
             corpus_de.append(target_segment)
-        tokens_it = word_tokenize("\n".join(corpus_it))
-        tokens_de = word_tokenize("\n".join(corpus_de))
-        vocab_it = Counter(tokens_it)                   # italian vocabulary (dictionary of token:frequency)
-        vocab_de = Counter(tokens_de)                   # german vocabulary
-        counter_dehyphen_it = 0
-        counter_dehyphen_de = 0
-        print("Dehyphenating...")
-        for tu in root.iter("tu"):
-            source_segment = tu.find("./tuv[@xml:lang='it']/seg", namespaces=nsmap)
-            target_segment = tu.find("./tuv[@xml:lang='de']/seg", namespaces=nsmap)
-            source_text = source_segment.text
-            target_text = target_segment.text
-            re = regex.compile(r"(([A-Za-zöäüÖÄÜ]+)\-([A-Za-zöäüÖÄÜ]+))")
-            found_it = regex.search(re, source_text)
-            if found_it:
-                frequency_it_hyph = vocab_it[found_it.group(1)]
-                it_merged = found_it.group(2) + found_it.group(3)
-                try:
-                    frequency_it_merged = vocab_it[it_merged]
-                except:
-                    continue
-                if frequency_it_hyph >= frequency_it_merged:
-                    continue
-                elif frequency_it_merged > frequency_it_hyph:
-                    #print(found_it.group(1))
-                    #print(source_text)
-                    new_it = regex.sub(re, it_merged, source_text, 1)
-                    source_segment.text = new_it
-                    #print(new_it)
-                    #print()
-                    counter_dehyphen_it += 1
-            found_de = regex.search(re, target_text)
-            if found_de:
-                frequency_de_hyph = vocab_de[found_de.group(1)]
-                de_merged = found_de.group(2) + found_de.group(3)
-                try:
-                    frequency_de_merged = vocab_de[de_merged]
-                except:
-                    continue
-                if frequency_de_hyph >= frequency_de_merged:
-                    continue
-                elif frequency_de_merged > frequency_de_hyph:
-                    #print(found_de.group(1))
-                    #print(target_text)
-                    new_de = regex.sub(re, de_merged, target_text, 1)
-                    target_segment.text = new_de
-                    #print(new_de)
-                    #print()
-                    counter_dehyphen_de += 1
-        print("Dehyphenated (Italian): ", counter_dehyphen_it)
-        print("Dehypheanted (German): ", counter_dehyphen_de)
+
+        vocab_it = Counter(word_tokenize("\n".join(corpus_it)))    # italian vocabulary (dictionary of token:frequency)
+        vocab_de = Counter(word_tokenize("\n".join(corpus_de)))    # german vocabulary
+
+        def dehyph(root):
+            counter_dehyphen_it = 0
+            counter_dehyphen_de = 0
+            print("Dehyphenating...")
+            for tu in root.iter("tu"):
+                source_segment = tu.find("./tuv[@xml:lang='it']/seg", namespaces=nsmap)
+                target_segment = tu.find("./tuv[@xml:lang='de']/seg", namespaces=nsmap)
+                source_text = source_segment.text
+                target_text = target_segment.text
+                re = regex.compile(r"(([A-Za-zöäüÖÄÜ]+)\-([A-Za-zöäüÖÄÜ]+))")
+                found_it = regex.search(re, source_text)
+
+                if found_it:
+                    frequency_it_hyph = vocab_it[found_it.group(1)]
+                    it_merged = found_it.group(2) + found_it.group(3)
+
+                    try:
+                        frequency_it_merged = vocab_it[it_merged]
+                    except:
+                        continue
+
+                    if frequency_it_hyph >= frequency_it_merged:
+                        continue
+                    if frequency_it_hyph == 0:  # to avoid unexplainable ZeroDivisionError in the following elif
+                        continue
+
+                    elif (frequency_it_merged/frequency_it_hyph) > 10 and (frequency_it_merged+frequency_it_hyph) > 40:
+                        # if hyphenated form occurs more than once, we modify it only if the merged form
+                        # occurs more than 10x more than the hyphenated and their global frequency is > 40
+                        #print(found_it.group(1))
+                        #print(source_text)
+                        new_it = regex.sub(re, it_merged, source_text, 1)
+                        source_segment.text = new_it
+                        #print(new_it)
+                        #print()
+                        counter_dehyphen_it += 1
+
+                found_de = regex.search(re, target_text)
+
+                if found_de:
+                    frequency_de_hyph = vocab_de[found_de.group(1)]
+                    de_merged = found_de.group(2) + found_de.group(3)
+
+                    try:
+                        frequency_de_merged = vocab_de[de_merged]
+                    except:
+                        continue
+
+                    if frequency_de_hyph >= frequency_de_merged:
+                        continue
+                    if frequency_de_hyph == 0:  # to avoid unexplainable ZeroDivisionError in the following elif
+                        continue
+
+                    elif (frequency_de_merged / frequency_de_hyph) > 10 and (frequency_de_merged + frequency_de_hyph) > 40:
+                        # if hyphenated form occurs more than once, we modify it only if the merged form
+                        # occurs more than 10x more than the hyphenated and their global frequency is > 40
+                        #print(found_de.group(1))
+                        #print(target_text)
+                        new_de = regex.sub(re, de_merged, target_text, 1)
+                        target_segment.text = new_de
+                        #print(new_de)
+                        #print()
+                        counter_dehyphen_de += 1
+
+            print("Dehyphenated (Italian): ", counter_dehyphen_it)
+            print("Dehypheanted (German): ", counter_dehyphen_de)
+
+        for i in range(4):          # carry out dehyphenation 4 times
+            root = tree.getroot()
+            dehyph(root)
 
     def remove_blank_units(self):
         '''
@@ -310,22 +332,27 @@ class ParallelCorpus:
         root = tree.getroot()
         body = root.find("body")
         counter = 0  # for testing purposes
+
         for tu in root.iter("tu"):
             source_segment = tu.find("./tuv[@xml:lang='it']/seg", namespaces=nsmap).text
             target_segment = tu.find("./tuv[@xml:lang='de']/seg", namespaces=nsmap).text
+
             if source_segment.isupper() and target_segment.isupper():
                 source_segment = source_segment.lower()
                 target_segment = target_segment.lower()
+
             try:
                 detect_it = langid.classify(source_segment)
                 detect_de = langid.classify(target_segment)
             except:
                 continue
+
             if "de" in detect_it or "it" in detect_de:    # broader alternative (every language other than it or de) => if "it" not in detect_it or "de" not in detect_de:
                 if len(source_segment.split()) > 8 and len(target_segment.split()) > 8: # just considering longer segments, shorter ones are more likely to be false positives
                     #print("\n\n", detect_it, detect_de, "\t", source_segment, "\n\t\t", target_segment)
                     body.remove(tu)
                     counter += 1
+
         print("%i TUs removed" % counter)
 
     def length_ratio_filter(self):
@@ -339,17 +366,20 @@ class ParallelCorpus:
         root = tree.getroot()
         body = root.find("body")
         count = 0
+
         for tu in root.iter("tu"):
             source_segment = tu.find("./tuv[@xml:lang='it']/seg", namespaces=nsmap).text
             target_segment = tu.find("./tuv[@xml:lang='de']/seg", namespaces=nsmap).text
             li = [(len(source_segment) + 15), (len(target_segment) + 15)]
             li.sort(reverse=True)
             len_ratio = li[0] / li[1]
+
             if len_ratio > 1.8:
                 body.remove(tu)
                 #print(len_ratio, "\t", source_segment)
                 #print("\t\t\t", target_segment)
                 count += 1
+
         print("%i TUs removed because of high length ratio difference." % count)
 
     def filter_per_token(self, min, max):
@@ -362,15 +392,18 @@ class ParallelCorpus:
         root = tree.getroot()
         body = root.find("body")
         print("Removing untranslated TUs...")
+
         for tu in root.iter("tu"):
             source_segment = tu.find("./tuv[@xml:lang='it']/seg", namespaces=nsmap).text
             target_segment = tu.find("./tuv[@xml:lang='de']/seg", namespaces=nsmap).text
+
             if len(source_segment.split()) < min or len(source_segment.split()) <= max:
                 body.remove(tu)
                 counter += 1
                 #print(source_segment)
                 #print(target_segment)
                 #print()
+
             if len(target_segment.split()) < min or len(target_segment.split()) <= max:
                 body.remove(tu)
                 counter += 1
@@ -386,7 +419,7 @@ class ParallelCorpus:
         tree = self.tree
         oldFilename = Path(self.parallelCorpus).stem
         newFilename = oldFilename + "_cleaned.tmx"
-        tree.write(newFilename, encoding="utf-8")
+        tree.write(newFilename, encoding="utf-8", xml_declaration=True)
         print("Done")
 
 
@@ -432,7 +465,6 @@ if __name__ == '__main__':
     while cleanable:
         corpus.noise_cleaning()
     corpus.remove_useless()
-    corpus.noise_cleaning()
     corpus.remove_whitespaces()
     corpus.dehyphenation()
     corpus.punct_digit_filter()
