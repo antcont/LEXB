@@ -164,7 +164,6 @@ class ParallelCorpus:
             regex.compile(r"^[A-MO-RT-Z]\. ((.+))$"),          #removing "A. " at the beginning of segments (except N. and S. (Numero; San Valentino etc.)
             regex.compile(r"^[A-Z]\d[\):] ((.+))$")             #removing "C3) " and "Q1: " at the beginning of sentences
         ]
-        regex_3 = regex.compile(r"^(Art\. \d{1,3}/?(?:bis|ter|quater|quinquies|sexies|septies|octies|novies|decies|undecies|duodecies)?) ?\-? ?(\(?\p{Lu}.+)")  # segments beginning with "Art. 1" or "Art. 1 - "
         tree = self.tree
         counter_cleaned = 0
         root = tree.getroot()
@@ -398,14 +397,14 @@ class ParallelCorpus:
             source_segment = tu.find("./tuv[@xml:lang='it']/seg", namespaces=nsmap).text
             target_segment = tu.find("./tuv[@xml:lang='de']/seg", namespaces=nsmap).text
 
-            if len(source_segment.split()) < min or len(source_segment.split()) <= max:
+            if len(source_segment.split()) < min or len(source_segment.split()) > max:
                 body.remove(tu)
                 counter += 1
                 #print(source_segment)
                 #print(target_segment)
                 #print()
 
-            if len(target_segment.split()) < min or len(target_segment.split()) <= max:
+            if len(target_segment.split()) < min or len(target_segment.split()) > max:
                 body.remove(tu)
                 counter += 1
                 #print(target_segment)
