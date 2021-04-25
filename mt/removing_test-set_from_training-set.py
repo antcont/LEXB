@@ -85,8 +85,8 @@ for line in bi_test_set:
 tu_dict_training = {}        #tu_dict must be in the form of -> original string: normalized string
 for line in training_set:
     modified = line.lower().replace(" ", "")  # lowercasing and removing simple whitespaces
-    punctuation = regex.compile(r"[\\!\"#\$%&'\(\)\*\+,\-\./:;<=>\?@\[\]\^_`\{\|\}~„“”\s]")
-    dates = regex.compile(r"\d\d?[gennaio|febbraio|marzo|aprile|maggio|giugno|luglio|agosto|settembre|ottobre|novembre|dicembre|Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember]\d{4}")
+    punctuation = regex.compile(r"[\\!\"#\$%&'’°\(\)\*\+,\-\./:;<=>\?@\[\]\^_`\{\|\}~„“”\s]")
+    dates = regex.compile(r"(gennaio|febbraio|marzo|aprile|maggio|giugno|luglio|agosto|settembre|ottobre|novembre|dicembre|Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember)")
     numbers = regex.compile(r"\d+")
     while regex.search(punctuation, modified):
         modified = regex.sub(punctuation, "", modified)  # removing punctuation
