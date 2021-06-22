@@ -36,14 +36,24 @@ tu_dict = {}        #tu_dict must be in the form of -> original string: normaliz
 for line in corpus:
     modified = line.lower().replace(" ", "")  # lowercasing and removing simple whitespaces
     punctuation = regex.compile(r"[\\!\"#\$%&'’°\(\)\*\+,\-\./:;<=>\?@\[\]\^_`\{\|\}~„“”\s]")
-    dates = regex.compile(r"(gennaio|febbraio|marzo|aprile|maggio|giugno|luglio|agosto|settembre|ottobre|novembre|dicembre|Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember)")
-    numbers = regex.compile(r"\d+")
-    while regex.search(punctuation, modified):
-        modified = regex.sub(punctuation, "", modified)  # removing punctuation
+    texts = (r"(legge provinciale|l\.p\.|L\.P\.|D\.P\.G\.P\.|L\.G\.|Landesgesetz|Landesgesetzes)")
+    sections = (r"(articolo|titolo|comma|art\.|abstatz|titel)")
+    dates = regex.compile(r"\d\d?[ \./](gennaio|febbraio|marzo|aprile|maggio|giugno|luglio|agosto|settembre|ottobre|novembre|dicembre|januar|februar|märz|april|mai|juni|juli|august|september|oktober|november|dezember|\d\d?)[ \.\/]\d{4}")
+    #  series of numbers (ex. "1, 2, 3 e 4")
+    numbers_and = regex.compile(r"(,? ?\d\d?\/?(bis|ter|quater|quinquies|sexies|septies|octies|novies|decies|undecies|duodecies)?){1,5}( (e|und) \d\d?\/?(bis|ter|quater|quinquies|sexies|septies|octies|novies|decies|undecies|duodecies)?)")
+    numbers = regex.compile(r"\d+/?(bis|ter|quater|quinquies|sexies|septies|octies|novies|decies|undecies|duodecies)?")
+    while regex.search(texts, modified):
+        modified = regex.sub(texts, "T", modified)  # replacing text types with "T" placeholder
+    while regex.search(sections, modified):
+        modified = regex.sub(sections, "S", modified)   # replacing section types with "S" placeholder
     while regex.search(dates, modified):
-        modified = regex.sub(dates, "Y", modified) #replacing dates with "Y" placeholder
+        modified = regex.sub(dates, "Y", modified)    # replacing dates with "Y" placeholder
+    while regex.search(numbers_and, modified):
+        modified = regex.sub(numbers_and, "X", modified)  # replacing series of numbers with "X" placeholder
     while regex.search(numbers, modified):
         modified = regex.sub(numbers, "X", modified)  # replacing digits with "X" placeholder
+    while regex.search(punctuation, modified):
+        modified = regex.sub(punctuation, "", modified)  # removing punctuation
         tu_dict[line] = modified
 
 new_dict = {}
@@ -65,6 +75,7 @@ for x, y in new_dict.items():
     for dup in blacklist:
         if dup == y:
             delete.append(x)
+            continue
 
 #print(len(delete))
 
@@ -103,7 +114,7 @@ print("Total segments between 10 and 20 tokens, starting with uppercase letter a
 
 
 random.shuffle(segments10_20)              # shuffling temporary 10-20 segment list
-test_set_ = list(segments10_20[:2000])     # generating test_set by taking first 2000 random segments from shuffled list
+test_set_ = list(segments10_20[:2040])     # generating test_set by taking first 2000 random segments from shuffled list
 
 print("Test set has %i segments." % len(test_set_))
 
@@ -127,19 +138,19 @@ for source, target in (line.split("\t") for line in test_set):
     reference.append(target)
 
 #  exporting training set, test set and reference separately to tab-separated txt files
-corpus = ["it\tde"] + corpus    # necessary?
+corpus = ["it\tde"] + list(corpus)    # necessary?
 training_set = "\n".join(corpus)
-with open("training-set__.txt", "w", encoding="utf-8") as training:
+with open("training-set__3.txt", "w", encoding="utf-8") as training:
     training.write(training_set)
 print("Training set size (TUs): ", len(corpus))
 
 test_set_it = "\n".join(test_set_it)
-with open("test-set__.txt", "w", encoding="utf-8") as test:
+with open("test-set__3.txt", "w", encoding="utf-8") as test:
     test.write(test_set_it)
 print("Test set size (chars): ", len(test_set_it))
 
 reference = "\n".join(reference)
-with open("reference__.txt", "w", encoding="utf-8") as ref:
+with open("reference__3.txt", "w", encoding="utf-8") as ref:
     ref.write(reference)
 
 print("Done.")
