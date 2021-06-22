@@ -1,7 +1,5 @@
 '''
-Version for comparino custom CoA and custom DeF for PaCor2021.
-
-Metrics for automatic MT evaluation:
+Metrics for automatic MT quality evaluation:
 - BLEU score
 - chrF3 (https://www.aclweb.org/anthology/W15-3049.pdf)
 '''
@@ -11,13 +9,13 @@ import pandas as pd
 import regex as re
 
 
-test_set_path = r"C:\Users\anton\Documents\Documenti importanti\SSLMIT FORLI M.A. SPECIALIZED TRANSLATION 2019-2021\tesi\EXPERIMENTS\1 (first official experiment on gt mmt deepl baselines; test set 2000)\test-set_2000_1.txt"
-reference_path = r"C:\Users\anton\Documents\Documenti importanti\SSLMIT FORLI M.A. SPECIALIZED TRANSLATION 2019-2021\tesi\EXPERIMENTS\1 (first official experiment on gt mmt deepl baselines; test set 2000)\reference_2000_1.txt"
-MMT_baseline_path = r"C:\Users\anton\Documents\Documenti importanti\SSLMIT FORLI M.A. SPECIALIZED TRANSLATION 2019-2021\tesi\EXPERIMENTS\1 (first official experiment on gt mmt deepl baselines; test set 2000)\mmt_baseline_1.txt"
-mmt_custom_path_CoA = r"C:\Users\anton\Documents\Documenti importanti\SSLMIT FORLI M.A. SPECIALIZED TRANSLATION 2019-2021\tesi\EXPERIMENTS\1 (first official experiment on gt mmt deepl baselines; test set 2000)\1_Trados\test-set_2000_1.txt_it-IT_de-DE.txt"
-mmt_custom_path_DeF = r"C:\Users\anton\Documents\Documenti importanti\SSLMIT FORLI M.A. SPECIALIZED TRANSLATION 2019-2021\tesi\EXPERIMENTS\1 (first official experiment on gt mmt deepl baselines; test set 2000)\A_test-set_2000_DE_DeF (1).txt"
+test_set_path = r""
+reference_path = r""
+MMT_baseline_path = r""
+mmt_custom_path_CoA = r""
+mmt_custom_path_DeF = r""
 
-report_path_export = r"C:\Users\anton\Documents\Documenti importanti\SSLMIT FORLI M.A. SPECIALIZED TRANSLATION 2019-2021\tesi\EXPERIMENTS\1 (first official experiment on gt mmt deepl baselines; test set 2000)\report_experiment_CoA-DeF_15032021.txt"
+report_path_export = r""
 
 
 with open(test_set_path, "r", encoding="utf-8") as test:
