@@ -1,6 +1,4 @@
 '''
-TODO: still have to test it (used LexBrowser_IT and LexBrowser_DE for my corpus)
-
 LexScraper_tm
 
     Given a list of URLs, for each URL:
@@ -29,8 +27,6 @@ args = parser.parse_args()
 #  processing arguments
 urlList = args.urlList
 language = args.language
-
-
 
 
 def scraper_tm(urlList, language):
