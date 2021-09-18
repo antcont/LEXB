@@ -1,6 +1,6 @@
 """
 A counter for sentence pairs and tokens in a parallel corpus.
-It also calculates the TTR (Type-Token Ratio)
+It also computes TTR (Type-Token Ratio)
 """
 
 import argparse
@@ -20,6 +20,7 @@ def segment_counter(path, min, max):
     counter_right_length = 0
     for tu in root.iter("tu"):
         counter_total += 1
+        # change language codes in the following lines if necessary
         source_segment = tu.find("./tuv[@xml:lang='it']/seg", namespaces=nsmap).text
         target_segment = tu.find("./tuv[@xml:lang='de']/seg", namespaces=nsmap).text
         source_tokens = source_segment.split()
@@ -43,6 +44,7 @@ def token_counter(path):
     corpus_de = []
 
     for tu in root.iter("tu"):
+        # change language codes in the following lines if necessary
         source_segment = tu.find("./tuv[@xml:lang='it']/seg", namespaces=nsmap).text
         target_segment = tu.find("./tuv[@xml:lang='de']/seg", namespaces=nsmap).text
         corpus_it.append(source_segment)

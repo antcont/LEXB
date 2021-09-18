@@ -97,6 +97,7 @@ class ParallelCorpus:
                 try:
                     body.remove(tu)
                     counter_art_rem2 += 1
+                    print(source_segment, "\n", target_segment, "\n\n")
                 except:
                     #print("An error occurred. TU was not removed: %s" % source_segment, target_segment)
                     pass
@@ -128,6 +129,7 @@ class ParallelCorpus:
                     try:
                         body.remove(tu)
                         counter += 1
+                        print(source_segment, "\n", target_segment, "\n\n")
                     except:
                         #print("An error occurred. TU was not removed: %s" % seg_t)
                         pass
@@ -321,7 +323,7 @@ class ParallelCorpus:
     def language_filter(self):
         '''
         Discarding sentence pairs whose detected languages are not it-de.
-        Roundabout for unsolved issue of langid (doesn't work with segments with only UPPERCASE characters):
+        Workaround for unsolved issue of langid (doesn't work with segments with only UPPERCASE characters):
         if all uppercase, convert to lowercase, then run langid.
         '''
         tree = self.tree
@@ -404,7 +406,7 @@ class ParallelCorpus:
                 #print(target_segment)
                 #print()
 
-            if len(target_segment.split()) < min or len(target_segment.split()) > max:
+            elif len(target_segment.split()) < min or len(target_segment.split()) > max:
                 body.remove(tu)
                 counter += 1
                 #print(target_segment)
@@ -439,6 +441,7 @@ if __name__ == '__main__':
     corpus = ParallelCorpus(parallelCorpus)
     corpus.remove_untranslated()
     corpus.punct_digit_filter()
+    corpus.non_alphabetical_ratio_filter()
     corpus.remove_whitespaces()
     corpus.remove_useless()
     corpus.noise_cleaning()
@@ -449,11 +452,13 @@ if __name__ == '__main__':
     corpus.remove_whitespaces()
     corpus.dehyphenation()
     corpus.punct_digit_filter()
+    corpus.non_alphabetical_ratio_filter()
     corpus.noise_cleaning()
     corpus.remove_untranslated()
     corpus.remove_blank_units()
     corpus.language_filter()
     corpus.length_ratio_filter()
+    corpus.filter_per_token(0, 80)
 
 
     #  writing clean corpus

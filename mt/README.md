@@ -5,7 +5,7 @@ The LEXB_mt corpus is the version of the LEXB corpus used for machine translatio
 Texts are scraped and aligned using LF Aligner; the corpus in .tmx format is then cleaned up and filtered.
 
 
-- `LexScraper_tm.py`:   	a scraper for texts from the LexBrowser database.
+- `LexScraper_tm.py`:   	A scraper for texts from the LexBrowser database.
    	 			Given a list of URLs, for each URL:
   - parsing the HTML
   - filtering according to blacklisted terms in titles
@@ -13,7 +13,7 @@ Texts are scraped and aligned using LF Aligner; the corpus in .tmx format is the
   - creating a .csv report file
 
 
-- `tmx_cleaner.py`:		a toolkit for cleaning and filtering the parallel corpus in .tmx format and getting clean sentence-sentence
+- `tmx_cleaner.py`:		A toolkit for cleaning and filtering the parallel corpus in .tmx format and getting clean sentence-sentence
 				translation units:
   - `remove_untranslated()`:    filters out TUs with identical or almost identical source and target sentences
   - `punct_digit_filter()`: filters out TUs with at least one segment containing punctuation and/or numbers only.
@@ -30,12 +30,14 @@ Texts are scraped and aligned using LF Aligner; the corpus in .tmx format is the
   - `filter_per_token()`:	filters out very long and very short segments according to number of tokens.	
 
 
-- `dataset_deduplication_splitting.py`:	a script for dataset splitting between training set and test set. Test set contains 2000 random sentences between 10-20 words. Before dataset splitting, a more advanced deduplication operation (based on the approach of Pinnis et al. 2018) is carried out in order to avoid overlapping of almost duplicates between training set and test set.
+- `dataset_deduplication+splitting.py`:	A script for dataset splitting between training set and test set. Test set contains 2000 random sentences between 10-20 words. Before dataset splitting, a more advanced deduplication operation (based on the approach of Pinnis et al. 2018) is carried out in order to avoid overlapping of almost duplicates between training set and test set.
 
-- `evaluation_metrics.py`:	generating automatic evaluation scores (BLEU, chrF3). A .tsv file with scores at segment level is also created, for more granular and score-based manual evaluation.
+- `evaluation_metrics.py`:	Generating automatic evaluation scores (BLEU, chrF3). A .tsv file with scores at segment level is also created, for more granular and score-based manual evaluation.
 
-- `removing_test-set_from_training-set.py`:	to be used to deduplicate sentence pairs between training/test when adding new data to the training set.
+- `validating_training-set.py`:	To be used to deduplicate sentence pairs between training/test when adding new data to the training set or changing test set.
 
+- `validating+deduplicating_training-set.py`: Removes test sentence pairs from training data with an additional step of removing near-duplicates.
 
+- `counter.py`: A counter for sentence pairs and tokens in a parallel corpus. Also computes TTR (Type-Token Ratio).
 
 
