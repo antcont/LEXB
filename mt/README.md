@@ -32,11 +32,13 @@ Texts are scraped and aligned using LF Aligner; the corpus in .tmx format is the
 
 - `dataset_deduplication+splitting.py`:	A script for dataset splitting between training set and test set. Test set contains 2000 random sentences between 10-20 words. Before dataset splitting, a more advanced deduplication operation (based on the approach of Pinnis et al. 2018) is carried out in order to avoid overlapping of almost duplicates between training set and test set.
 
-- `evaluation_metrics.py`:	Generating automatic evaluation scores (BLEU, chrF3). A .tsv file with scores at segment level is also created, for more granular and score-based manual evaluation.
-
 - `validating_training-set.py`:	To be used to deduplicate sentence pairs between training/test when adding new data to the training set or changing test set.
 
 - `validating+deduplicating_training-set.py`: Removes test sentence pairs from training data with an additional step of removing near-duplicates.
+
+- `evaluation_metrics.py`:	Generating automatic evaluation scores (BLEU, chrF3). A .tsv file with scores at segment level is also created, for more granular and score-based manual evaluation.
+
+- `statistical_significance.py`: A statistical significance test (bootstrap resampling, Koehn 2004) for machine translation.
 
 - `counter.py`: A counter for sentence pairs and tokens in a parallel corpus. Also computes TTR (Type-Token Ratio).
 
