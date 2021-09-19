@@ -38,7 +38,7 @@ Texts are scraped and aligned using LF Aligner; the corpus in .tmx format is the
 
 - `evaluation_metrics.py`:	Generating automatic evaluation scores (BLEU, chrF3). A .tsv file with scores at segment level is also created, for more granular and score-based manual evaluation.
 
-- `statistical_significance.py`: A statistical significance test (bootstrap resampling, Koehn 2004) for machine translation.
+- `statistical_significance.py`: A statistical significance test (paired bootstrap resampling, Koehn 2004) for machine translation.
 
 - `counter.py`: A counter for sentence pairs and tokens in a parallel corpus. Also computes TTR (Type-Token Ratio).
 
