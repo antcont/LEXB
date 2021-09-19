@@ -126,7 +126,7 @@ if __name__ == "__main__":
     parser.add_argument('sys2', help='File of adapted hypothesis set')
     parser.add_argument('--eval_type', help='The evaluation type (bleu, chrF3, hlepor)', type=str,
                         default='bleu', choices=EVAL_TYPES)
-    parser.add_argument('--num_samples', help='Number of samples to use', type=int, default=10000)
+    parser.add_argument('--num_samples', help='Number of samples to use', type=int, default=1000)
     args = parser.parse_args()
 
     with open(args.gold, 'r', encoding="utf-8") as f:
