@@ -113,13 +113,13 @@ class ParallelCorpus:
 
     def non_alphabetical_ratio_filter(self):
         '''
-        Filtering out TUs with segments having a number-punctuation/letters ratio higher than 0.6
+        Filtering out TUs with segments having a non-alphabetical/alphbetical characters ratio higher than 0.8
         '''
         tree = self.tree
         counter = 0
         root = tree.getroot()
         body = root.find("body")
-        print("Removing segments with (numbers+punctuation)/letters ratio > 0.8...")
+        print("Removing segments with non-alphabetical/alphabetical characters ratio > 0.8...")
         for tu in root.iter("tu"):
             for tuv in tu.iter("tuv"):
                 seg = tuv.find("seg")
@@ -140,7 +140,7 @@ class ParallelCorpus:
                     except:
                         #print("An error occurred. TU was not removed: %s" % seg_t)
                         pass
-        print("%i TUs removed ((numbers+punctuation)/letters ratio > 0.8)" % counter)
+        print("%i TUs removed (non-alphabetical/letters ratio > 0.8)" % counter)
         print()
 
     def noise_cleaning(self):
