@@ -1,4 +1,11 @@
+'''
+Toolkit for corpus cleaning and filtering.
 
+NB: Integrate filtering by using Heartsome TMX Editor to remove perfect duplicates 
+    and inconsistencies in target (sentence pairs with same source and different targets)
+    
+Input is a parallel corpus in .tmx format.
+'''
 import argparse
 import langid
 import regex
