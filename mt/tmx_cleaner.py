@@ -104,7 +104,7 @@ class ParallelCorpus:
                 try:
                     body.remove(tu)
                     counter_art_rem2 += 1
-                    print(source_segment, "\n", target_segment, "\n\n")
+                    #print(source_segment, "\n", target_segment, "\n\n")
                 except:
                     #print("An error occurred. TU was not removed: %s" % source_segment, target_segment)
                     pass
@@ -136,7 +136,7 @@ class ParallelCorpus:
                     try:
                         body.remove(tu)
                         counter += 1
-                        print(source_segment, "\n", target_segment, "\n\n")
+                        #print(source_segment, "\n", target_segment, "\n\n")
                     except:
                         #print("An error occurred. TU was not removed: %s" % seg_t)
                         pass
