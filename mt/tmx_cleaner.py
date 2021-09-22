@@ -16,7 +16,6 @@ from lxml import etree
 from nltk import word_tokenize
 from pathlib import Path
 
-
 class ParallelCorpus:
 
     def __init__(self, parallelCorpus: str):
@@ -89,6 +88,7 @@ class ParallelCorpus:
     def punct_digit_filter(self):
         '''
         Removing translation units where at least one segment contains punctuation and/or digits only.
+        Not used, replaced by the broader non_alphabetical_ratio_filter()
         '''
         tree = self.tree
         counter_art_rem2 = 0
@@ -177,18 +177,40 @@ class ParallelCorpus:
         counter_cleaned = 0
         root = tree.getroot()
         print("Yet another segment cleaning stage...")
-        for tu in root.iter("tu"):
+
+        def apply_regex(regexList, segment):
+            '''
+            Iterates over all regexes on segment, until one matches.
+            After first matching, it exits the loop to avoid overwriting.
+            '''
+            count_l = 0
+            for regex_ in regexList:  # iterating over list of regex patterns
+                if regex_.search(seg_t):
+                    count_l += 1
+                    # print(segment)
+                    segment = regex_.search(segment).group(2)
+                    # print(segment)
+                    break               # to avoid overwriting
+            return segment, count_l
+
+        for tu in root.iter("tu"):  # for each translation unit
             for tuv in tu.iter("tuv"):
-                seg = tuv.find("seg")
+                seg = tuv.find("seg")  # for each segment
                 seg_t = seg.text
-                for regex_ in regex_patterns:                                   # iterating over list of regex patterns
-                    if regex_.search(seg_t):
-                        counter_cleaned += 1
-                        #print(seg_t)
-                        seg.text = regex_.search(seg_t).group(2)
-                        #print(seg.text)
-                        break                                               # to prevent regex overwriting on same segment
-        if counter_cleaned == 0:
+                seg_t, counts = apply_regex(regex_patterns, seg_t)  # applying all regexes until one applies
+                counter_cleaned += counts
+                if counts > 0:          # only if one regex matched
+                    seg_t, counts = apply_regex(regex_patterns, seg_t)      # run again
+                    counter_cleaned += counts
+                if counts > 0:
+                    seg_t, counts = apply_regex(regex_patterns, seg_t)
+                    counter_cleaned += counts
+                if counts > 0:
+                    seg_t, counts = apply_regex(regex_patterns, seg_t)
+                    counter_cleaned += counts
+                seg.text = seg_t
+
+        if counter_cleaned == 0:    # if all segments in the corpus are cleaned
             global cleanable
             cleanable = False
         print("%i cleaning operations of noise at the beginning and end of segments." % counter_cleaned)
@@ -439,19 +461,18 @@ class ParallelCorpus:
 
 if __name__ == '__main__':
     #  defining and processing cmd arguments
-    parser = argparse.ArgumentParser(description="Script for parallel corpus (tmx) cleaning and filtering")
+    parser = argparse.ArgumentParser(description="Script for parallel corpus (TMX) cleaning and filtering")
     parser.add_argument("parallelCorpus", help="the parallel corpus in TMX format")
     args = parser.parse_args()
     parallelCorpus = args.parallelCorpus
 
-    #  cleaning and filtering operations (order matters)
     corpus = ParallelCorpus(parallelCorpus)
     corpus.remove_untranslated()
-    corpus.punct_digit_filter()
     corpus.non_alphabetical_ratio_filter()
     corpus.remove_whitespaces()
     corpus.remove_useless()
     corpus.noise_cleaning()
+    corpus.non_alphabetical_ratio_filter()
     cleanable = True  # refers to noise_cleaning(), becomes False when all segments are cleaned by the function
     while cleanable:
         corpus.noise_cleaning()
