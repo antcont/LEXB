@@ -486,7 +486,7 @@ if __name__ == '__main__':
     corpus.remove_blank_units()
     corpus.language_filter()
     corpus.length_ratio_filter()
-    corpus.filter_per_token(0, 80)
+    corpus.filter_per_token(6, 80)      # removing short (≤ 5 tokens) and long (> 80 tokens) sentences
 
 
     #  writing clean corpus

@@ -40,6 +40,7 @@ for year in list_years:
     html = http.request('GET', year).data
     soup = BeautifulSoup(html, features="lxml")
     section = soup.find(id="documento")
+
     for link in section.find_all("a"):
         IT_URLs.append(url_domain + link.get('href'))
 
@@ -74,6 +75,7 @@ for id, it_URL in enumerate(IT_URLs):
     html = http.request('GET', it_URL).data                                     # making 'get' request and getting data
     soup = BeautifulSoup(html, features="lxml")                                            # setting up BeautifulSoup
     section = soup.find(id="ContentPlaceHolder1_lnkLangDE", class_="lingua noselezionata")         # switch to German
+
     if section is None:
         print("%s discarded because no German version is available" % it_URL)
         continue
@@ -83,14 +85,17 @@ for id, it_URL in enumerate(IT_URLs):
     law_title_it = soup.title.string                                                                  # getting IT title
     if any(term in law_title_it for term in blacklist_it):                   # checking if blacklisted terms in IT title
         print("%s discarded because Italian law title contains blacklisted term (probably untranslated text)" % it_URL)
+
     else:
         de_URL = url_domain + de_URL_loc + "?view=1"                            # building complete URL of German laws
         html = http.request('GET', de_URL).data
         soup = BeautifulSoup(html, features="lxml")
         law_title_de = soup.title.string
+
         if any(term in law_title_de for term in blacklist_de):
             print("%s discarded because German law title contains blacklisted term (probably untranslated text)" %
                   de_URL)
+
         else:
             paired_URLs[it_URL] = de_URL                                         # adding pair of IT and DE URLs to dict
             print("\r", "%i out of %i URLs processed." % (id+1, len(IT_URLs)), end="")

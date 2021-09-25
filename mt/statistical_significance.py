@@ -19,8 +19,6 @@ EVAL_TYPES = [EVAL_TYPE_BLEU,
               EVAL_TYPE_CHRF3]
 
 
-
-
 def eval_measure(gold, sys, eval_type='bleu'):
     ''' Evaluation measure
 

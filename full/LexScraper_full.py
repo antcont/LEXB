@@ -14,10 +14,6 @@ import langid
 from xml.sax.saxutils import escape, unescape, quoteattr
 
 
-
-
-
-#  building up all the functions
 def get_soup(url):
     '''
     retries = Retry(connect=10, read=10, redirect=10)  # trying to reconnect to the website in case of error
