@@ -30,7 +30,7 @@ Texts are scraped and aligned using LF Aligner; the corpus in .tmx format is the
   - `filter_per_token()`:	filters out very long and very short segments according to number of tokens.	
 
 
-- `dataset_deduplication+splitting.py`:	A script for dataset splitting between training set and test set. Test set contains 2000 random sentences between 10-20 words. Before dataset splitting, a more advanced deduplication operation (based on the approach of Pinnis et al. 2018) is carried out in order to avoid overlapping of almost duplicates between training set and test set.
+- `dataset_deduplication+splitting.py`:	A script for dataset splitting between training set and test set. Test set contains 2000 random sentences between 10-20 words. Before dataset splitting, a more advanced deduplication operation (based on the approach of [Pinnis 2018]) is carried out in order to avoid overlapping of almost duplicates between training set and test set.
 
 - `validating_training-set.py`:	To be used to deduplicate sentence pairs between training/test when adding new data to the training set or changing test set.
 
