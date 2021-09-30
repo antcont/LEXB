@@ -17,6 +17,11 @@ from Levenshtein import distance
 from lxml import etree
 from nltk import word_tokenize
 
+# LANG_PAIR=('it','de')  # LexBrowser.tmx
+# LANG_PAIR=('IT-IT','DE-DE')  # UQL.tmx
+# LANG_PAIR=('IT','DE')  # norme-statali.tmx
+LANG_PAIR=('it-IT','de-DE')  # sanitised
+
 class ParallelCorpus:
 
     def __init__(self, parallelCorpus: str):
@@ -37,8 +42,8 @@ class ParallelCorpus:
         body = root.find("body")
         print("Removing untranslated TUs and TUs with highly similar source-target...")
         for tu in root.iter("tu"):
-            source_segment = tu.find("./tuv[@xml:lang='it']/seg", namespaces=nsmap).text
-            target_segment = tu.find("./tuv[@xml:lang='de']/seg", namespaces=nsmap).text
+            source_segment = tu.find(f"./tuv[@xml:lang='{LANG_PAIR[0]}']/seg", namespaces=nsmap).text
+            target_segment = tu.find(f"./tuv[@xml:lang='{LANG_PAIR[1]}']/seg", namespaces=nsmap).text
             if source_segment == target_segment:
                 try:
                     body.remove(tu)
@@ -99,8 +104,8 @@ class ParallelCorpus:
         body = root.find("body")
         print("Removing TUs with at least one segment with punctuation and/or numbers only...")
         for tu in root.iter("tu"):
-            source_segment = tu.find("./tuv[@xml:lang='it']/seg", namespaces=nsmap).text
-            target_segment = tu.find("./tuv[@xml:lang='de']/seg", namespaces=nsmap).text
+            source_segment = tu.find(f"./tuv[@xml:lang='{LANG_PAIR[0]}']/seg", namespaces=nsmap).text
+            target_segment = tu.find(f"./tuv[@xml:lang='{LANG_PAIR[1]}']/seg", namespaces=nsmap).text
             if regex_rem2.search(source_segment) or regex_rem2.search(target_segment):
                 try:
                     body.remove(tu)
@@ -231,8 +236,8 @@ class ParallelCorpus:
         root = tree.getroot()
 
         for tu in root.iter("tu"):
-            source_segment = tu.find("./tuv[@xml:lang='it']/seg", namespaces=nsmap).text
-            target_segment = tu.find("./tuv[@xml:lang='de']/seg", namespaces=nsmap).text
+            source_segment = tu.find(f"./tuv[@xml:lang='{LANG_PAIR[0]}']/seg", namespaces=nsmap).text
+            target_segment = tu.find(f"./tuv[@xml:lang='{LANG_PAIR[1]}']/seg", namespaces=nsmap).text
             corpus_it.append(source_segment)
             corpus_de.append(target_segment)
 
@@ -244,8 +249,8 @@ class ParallelCorpus:
             counter_dehyphen_de = 0
             print("Dehyphenating...")
             for tu in root.iter("tu"):
-                source_segment = tu.find("./tuv[@xml:lang='it']/seg", namespaces=nsmap)
-                target_segment = tu.find("./tuv[@xml:lang='de']/seg", namespaces=nsmap)
+                source_segment = tu.find(f"./tuv[@xml:lang='{LANG_PAIR[0]}']/seg", namespaces=nsmap)
+                target_segment = tu.find(f"./tuv[@xml:lang='{LANG_PAIR[1]}']/seg", namespaces=nsmap)
                 source_text = source_segment.text
                 target_text = target_segment.text
                 re = regex.compile(r"(([A-Za-zöäüÖÄÜ]+)\-([A-Za-zöäüÖÄÜ]+))")
@@ -365,8 +370,8 @@ class ParallelCorpus:
         counter = 0  # for testing purposes
 
         for tu in root.iter("tu"):
-            source_segment = tu.find("./tuv[@xml:lang='it']/seg", namespaces=nsmap).text
-            target_segment = tu.find("./tuv[@xml:lang='de']/seg", namespaces=nsmap).text
+            source_segment = tu.find(f"./tuv[@xml:lang='{LANG_PAIR[0]}']/seg", namespaces=nsmap).text
+            target_segment = tu.find(f"./tuv[@xml:lang='{LANG_PAIR[1]}']/seg", namespaces=nsmap).text
 
             if source_segment.isupper() and target_segment.isupper():
                 source_segment = source_segment.lower()
@@ -400,8 +405,8 @@ class ParallelCorpus:
         count = 0
 
         for tu in root.iter("tu"):
-            source_segment = tu.find("./tuv[@xml:lang='it']/seg", namespaces=nsmap).text
-            target_segment = tu.find("./tuv[@xml:lang='de']/seg", namespaces=nsmap).text
+            source_segment = tu.find(f"./tuv[@xml:lang='{LANG_PAIR[0]}']/seg", namespaces=nsmap).text
+            target_segment = tu.find(f"./tuv[@xml:lang='{LANG_PAIR[1]}']/seg", namespaces=nsmap).text
             li = [(len(source_segment) + 15), (len(target_segment) + 15)]
             li.sort(reverse=True)
             len_ratio = li[0] / li[1]
@@ -426,8 +431,8 @@ class ParallelCorpus:
         print("Removing untranslated TUs...")
 
         for tu in root.iter("tu"):
-            source_segment = tu.find("./tuv[@xml:lang='it']/seg", namespaces=nsmap).text
-            target_segment = tu.find("./tuv[@xml:lang='de']/seg", namespaces=nsmap).text
+            source_segment = tu.find(f"./tuv[@xml:lang='{LANG_PAIR[0]}']/seg", namespaces=nsmap).text
+            target_segment = tu.find(f"./tuv[@xml:lang='{LANG_PAIR[1]}']/seg", namespaces=nsmap).text
 
             if len(source_segment.split()) < min or len(source_segment.split()) > max:
                 body.remove(tu)
