@@ -7,14 +7,15 @@ NB: Integrate filtering by using Heartsome TMX Editor to remove perfect duplicat
 Input is a parallel corpus in .tmx format.
 '''
 import argparse
+import string
+from collections import Counter
+from pathlib import Path
+
 import langid
 import regex
-import string
 from Levenshtein import distance
-from collections import Counter
 from lxml import etree
 from nltk import word_tokenize
-from pathlib import Path
 
 class ParallelCorpus:
 
